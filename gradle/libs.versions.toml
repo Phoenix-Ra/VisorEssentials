@@ -1,0 +1,45 @@
+
+
+[versions]
+
+#Annotations
+lombok                 = "1.18.30"
+jetbrains              = "23.0.0"
+
+#Core
+minecraftVersion       = "1.20.1"
+architectury_lib       = "11.0.5"
+parchment              = "2023.09.03"
+
+#Fabric
+fabric_loader          = "0.16.5"
+fabric_api             = "0.92.3"
+mixinExtras            = "0.4.1"
+
+#Forge
+forgeVersion           = "47.3.22"
+
+
+[libraries]
+
+# Annotations
+lombok           = { module = "org.projectlombok:lombok",           version.ref = "lombok" }
+jetbrains        = { module = "org.jetbrains:annotations",         version.ref = "jetbrains" }
+
+# Core
+architectury-lib   = {module = "dev.architectury:architectury-fabric", version.ref = "architectury_lib"}
+
+# Mod loaders
+fabric-loader      = { module = "net.fabricmc:fabric-loader",        version.ref = "fabric_loader" }
+
+[bundles]
+annotations        = [ "lombok", "jetbrains" ]
+
+
+
+[plugins]
+architectury         = { id = "architectury-plugin",            version = "3.4-SNAPSHOT" }
+loom                 = { id = "dev.architectury.loom",          version = "1.5-SNAPSHOT" }
+loom-quiltflower     = { id = "io.github.juuxel.loom-quiltflower", version = "1.8.0" }
+shadow               = { id = "com.github.johnrengelman.shadow",  version = "7.1.2" }
+axion-release        = { id = "pl.allegro.tech.build.axion-release", version = "1.13.6" }
