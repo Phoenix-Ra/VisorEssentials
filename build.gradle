@@ -17,11 +17,10 @@ scmVersion {
     //versionIncrementer "incrementMinor"
     versionIncrementer "incrementPatch"
 
-
 }
 
 group = project_group
-version = "1.1.1"
+version = scmVersion.version
 archivesBaseName = project_name
 
 architectury {
