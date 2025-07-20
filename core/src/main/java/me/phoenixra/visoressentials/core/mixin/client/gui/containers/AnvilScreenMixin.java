@@ -19,7 +19,9 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(AnvilScreen.class)
-public abstract class AnvilScreenMixin extends ItemCombinerScreen<AnvilMenu> implements AbstractContainerScreenModified {
+public abstract class AnvilScreenMixin
+        extends ItemCombinerScreen<AnvilMenu>
+        implements AbstractContainerScreenModified {
     @Unique
     private ResourceLocation visorEssentials$VrTexture = new ResourceLocation(
             VisorEssentials.MOD_ID,
@@ -30,14 +32,15 @@ public abstract class AnvilScreenMixin extends ItemCombinerScreen<AnvilMenu> imp
         super(menu, playerInventory, title, menuResource);
     }
 
-    @Inject(method = "<init>", at = @At("TAIL"))
-    private void visorEssentials$onInit(AnvilMenu menu, Inventory playerInventory, Component title, CallbackInfo ci){
+
+    @Override
+    public void visorEssentials$preInit() {
         imageWidth = 176;
         imageHeight = 89;
     }
 
     @Inject(method = "subInit", at = @At("TAIL"))
-    private void visorEssentials$onInit(CallbackInfo ci){
+    private void visorEssentials$updateEdges(CallbackInfo ci){
         visorEssentials$setEdgeX(leftPos);
         visorEssentials$setEdgeY(topPos);
         visorEssentials$setEdgeWidth(imageWidth);
@@ -52,6 +55,22 @@ public abstract class AnvilScreenMixin extends ItemCombinerScreen<AnvilMenu> imp
             return;
         }
         super.renderBg(guiGraphics, partialTick, mouseX, mouseY);
+
+    }
+    @Redirect(method = "renderBg", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blit(Lnet/minecraft/resources/ResourceLocation;IIIIII)V"))
+    private void visorEssentials$background2(GuiGraphics instance, ResourceLocation atlasLocation, int x, int y, int uOffset, int vOffset, int uWidth, int vHeight){
+        if(visorEssentials$isVRContainer()) {
+            int imageHeight = 166; //vanilla image used
+            instance.blit(atlasLocation,
+                    this.leftPos + 59,
+                    this.topPos + 20,
+                    0,
+                    imageHeight + (this.menu.getSlot(0).hasItem() ? 0 : 16),
+                    uWidth, vHeight);
+
+            return;
+        }
+        instance.blit(atlasLocation, x, y, uOffset, vOffset, uWidth, vHeight);
 
     }
 

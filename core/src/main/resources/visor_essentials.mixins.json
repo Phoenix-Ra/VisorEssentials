@@ -6,11 +6,23 @@
   "client": [
     "client.MinecraftMixin",
     "client.gui.containers.AbstractContainerScreenMixin",
+    "client.gui.containers.AbstractFurnaceScreenMixin",
     "client.gui.containers.AnvilScreenMixin",
     "client.gui.containers.BeaconScreenMixin",
+    "client.gui.containers.BrewingStandScreenMixin",
+    "client.gui.containers.CartographyTableScreenMixin",
     "client.gui.containers.ContainerScreenMixin",
     "client.gui.containers.CraftingScreenMixin",
-    "client.gui.containers.SmithingScreenMixin"
+    "client.gui.containers.DispenserScreenMixin",
+    "client.gui.containers.EnchantmentScreenMixin",
+    "client.gui.containers.GrindstoneScreenMixin",
+    "client.gui.containers.HopperScreenMixin",
+    "client.gui.containers.HorseInventoryScreenMixin",
+    "client.gui.containers.LoomScreenMixin",
+    "client.gui.containers.MerchantScreenMixin",
+    "client.gui.containers.ShulkerBoxScreenMixin",
+    "client.gui.containers.SmithingScreenMixin",
+    "client.gui.containers.StonecutterScreenMixin"
   ],
   "server": [
   ],

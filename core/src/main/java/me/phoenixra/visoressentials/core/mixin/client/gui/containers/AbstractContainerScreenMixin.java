@@ -63,6 +63,12 @@ public abstract class AbstractContainerScreenMixin <T extends AbstractContainerM
             );
         }
     }
+    @Inject(method = "init", at = @At("HEAD"))
+    private void onInit(CallbackInfo ci){
+        if(visorEssentials$isVrContainer) {
+            visorEssentials$preInit();
+        }
+    }
 
     @Redirect(method = "renderLabels", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;drawString(Lnet/minecraft/client/gui/Font;Lnet/minecraft/network/chat/Component;IIIZ)I",ordinal = 1))
     private int visorEssentials$noInventoryTitle(GuiGraphics instance, Font font, Component text, int x, int y, int color, boolean dropShadow){

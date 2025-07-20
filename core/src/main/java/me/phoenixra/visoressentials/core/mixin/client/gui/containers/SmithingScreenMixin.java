@@ -19,7 +19,9 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(SmithingScreen.class)
-public abstract class SmithingScreenMixin extends ItemCombinerScreen<AnvilMenu> implements AbstractContainerScreenModified {
+public abstract class SmithingScreenMixin
+        extends ItemCombinerScreen<AnvilMenu>
+        implements AbstractContainerScreenModified {
     @Unique
     private ResourceLocation visorEssentials$VrTexture = new ResourceLocation(
             VisorEssentials.MOD_ID,
@@ -30,14 +32,15 @@ public abstract class SmithingScreenMixin extends ItemCombinerScreen<AnvilMenu> 
         super(menu, playerInventory, title, menuResource);
     }
 
-    @Inject(method = "<init>", at = @At("TAIL"))
-    private void visorEssentials$onInit(SmithingMenu menu, Inventory playerInventory, Component title, CallbackInfo ci){
+    @Override
+    public void visorEssentials$preInit() {
         imageWidth = 176;
         imageHeight = 82;
     }
 
     @Inject(method = "subInit", at = @At("TAIL"))
-    private void visorEssentials$onInit(CallbackInfo ci){
+    private void visorEssentials$updateEdges(CallbackInfo ci){
+
         visorEssentials$setEdgeX(leftPos);
         visorEssentials$setEdgeY(topPos);
         visorEssentials$setEdgeWidth(imageWidth);

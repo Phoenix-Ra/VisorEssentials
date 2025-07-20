@@ -20,7 +20,9 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ContainerScreen.class)
-public abstract class ContainerScreenMixin extends AbstractContainerScreen<ChestMenu> implements AbstractContainerScreenModified {
+public abstract class ContainerScreenMixin
+        extends AbstractContainerScreen<ChestMenu>
+        implements AbstractContainerScreenModified {
 
     @Shadow @Final private int containerRows;
 
@@ -37,14 +39,14 @@ public abstract class ContainerScreenMixin extends AbstractContainerScreen<Chest
         super(menu, playerInventory, title);
     }
 
-    @Inject(method = "<init>", at = @At("TAIL"))
-    private void visorEssentials$onInit(ChestMenu menu, Inventory playerInventory, Component title, CallbackInfo ci){
+    @Override
+    public void visorEssentials$preInit() {
         imageWidth = 176;
         imageHeight = 34 + this.containerRows * 18;
     }
 
     @Inject(method = "render", at = @At("TAIL"))
-    private void visorEssentials$onInit(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci){
+    private void visorEssentials$updateEdges(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci){
         visorEssentials$setEdgeX(leftPos);
         visorEssentials$setEdgeY(topPos);
         visorEssentials$setEdgeWidth(imageWidth);

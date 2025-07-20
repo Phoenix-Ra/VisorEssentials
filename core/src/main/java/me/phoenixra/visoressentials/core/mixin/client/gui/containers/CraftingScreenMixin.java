@@ -3,7 +3,10 @@ package me.phoenixra.visoressentials.core.mixin.client.gui.containers;
 import me.phoenixra.visoressentials.core.client.mcmodified.AbstractContainerScreenModified;
 import me.phoenixra.visoressentials.core.common.VisorEssentials;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.ImageButton;
+import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.BlastFurnaceScreen;
 import net.minecraft.client.gui.screens.inventory.CraftingScreen;
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
 import net.minecraft.network.chat.Component;
@@ -20,7 +23,11 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(CraftingScreen.class)
-public abstract class CraftingScreenMixin extends AbstractContainerScreen<CraftingMenu> implements AbstractContainerScreenModified {
+public abstract class CraftingScreenMixin
+        extends AbstractContainerScreen<CraftingMenu>
+        implements AbstractContainerScreenModified {
+
+    @Shadow @Final private static ResourceLocation RECIPE_BUTTON_LOCATION;
     @Shadow @Final
     private RecipeBookComponent recipeBookComponent;
 
@@ -38,14 +45,14 @@ public abstract class CraftingScreenMixin extends AbstractContainerScreen<Crafti
         super(menu, playerInventory, title);
     }
 
-    @Inject(method = "<init>", at = @At("TAIL"))
-    private void visorEssentials$onInit(CraftingMenu menu, Inventory playerInventory, Component title, CallbackInfo ci){
+    @Override
+    public void visorEssentials$preInit() {
         imageWidth = 176;
         imageHeight = 86;
     }
 
     @Inject(method = "render", at = @At("TAIL"))
-    private void visorEssentials$onInit(CallbackInfo ci){
+    private void visorEssentials$updateEdges(CallbackInfo ci){
         if(recipeBookComponent.isVisible() && !this.widthTooNarrow){
             visorEssentials$setEdgeX(-1);
             visorEssentials$setEdgeY(-1);
@@ -69,6 +76,19 @@ public abstract class CraftingScreenMixin extends AbstractContainerScreen<Crafti
             return;
         }
         instance.blit(atlasLocation, x, y, uOffset, vOffset, uWidth, vHeight);
+    }
+
+    @Redirect(method = "init", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/CraftingScreen;addRenderableWidget(Lnet/minecraft/client/gui/components/events/GuiEventListener;)Lnet/minecraft/client/gui/components/events/GuiEventListener;"))
+    private GuiEventListener visorEssentials$recipeBook(CraftingScreen instance, GuiEventListener guiEventListener){
+
+        if(visorEssentials$isVRContainer()){
+            return addRenderableWidget(new ImageButton(this.leftPos + 5, /*modified*/topPos + 35 , 20, 18, 0, 0, 19, RECIPE_BUTTON_LOCATION, (arg) -> {
+                this.recipeBookComponent.toggleVisibility();
+                this.leftPos = this.recipeBookComponent.updateScreenPosition(this.width, this.imageWidth);
+                arg.setPosition(this.leftPos + 5, /*modified*/topPos + 35);
+            }));
+        }
+        return addRenderableWidget((ImageButton)guiEventListener);
     }
 
     @Override

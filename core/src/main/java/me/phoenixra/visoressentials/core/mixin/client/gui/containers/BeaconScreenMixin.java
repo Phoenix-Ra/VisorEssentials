@@ -22,7 +22,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.List;
 
 @Mixin(BeaconScreen.class)
-public abstract class BeaconScreenMixin extends AbstractContainerScreen<BeaconMenu>
+public abstract class BeaconScreenMixin
+        extends AbstractContainerScreen<BeaconMenu>
         implements AbstractContainerScreenModified {
 
     @Unique
@@ -35,14 +36,15 @@ public abstract class BeaconScreenMixin extends AbstractContainerScreen<BeaconMe
         super(menu, playerInventory, title);
     }
 
-    @Inject(method = "<init>", at = @At("TAIL"))
-    private void visorEssentials$onInit(BeaconMenu menu, Inventory playerInventory, Component title, CallbackInfo ci){
+
+    @Override
+    public void visorEssentials$preInit() {
         imageWidth = 230;
         imageHeight = 130;
     }
 
     @Inject(method = "init", at = @At("TAIL"))
-    private void visorEssentials$onInit(CallbackInfo ci){
+    private void visorEssentials$updateEdges(CallbackInfo ci){
         visorEssentials$setEdgeX(leftPos);
         visorEssentials$setEdgeY(topPos);
         visorEssentials$setEdgeWidth(imageWidth);

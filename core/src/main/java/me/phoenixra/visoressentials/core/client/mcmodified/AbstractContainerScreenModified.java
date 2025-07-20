@@ -11,6 +11,14 @@ public interface AbstractContainerScreenModified {
     // already implemented methods via mixin
     // for VrInvScreen
 
+    default void visorEssentials$preInit(){
+
+    }
+
+    default void visorEssentials$fillVRSlots(@NotNull List<ContainerSlot> slots){
+
+    }
+
     default boolean visorEssentials$supportsVRContainer(){
         return false;
     }
@@ -24,9 +32,6 @@ public interface AbstractContainerScreenModified {
     }
 
 
-    default void visorEssentials$fillVRSlots(@NotNull List<ContainerSlot> slots){
-
-    }
 
     @NotNull
     default List<ContainerSlot> visorEssentials$getVRSlots(){

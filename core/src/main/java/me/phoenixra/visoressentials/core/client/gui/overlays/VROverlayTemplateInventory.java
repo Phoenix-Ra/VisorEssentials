@@ -165,6 +165,10 @@ public class VROverlayTemplateInventory extends VROverlayTemplateScreenInScreen<
         );
     }
 
+    @Override
+    public boolean supportsCursorIgnoreVisible() {
+        return true;
+    }
 
     @Override
     protected @NotNull List<OverlayOptions> createOptions() {
