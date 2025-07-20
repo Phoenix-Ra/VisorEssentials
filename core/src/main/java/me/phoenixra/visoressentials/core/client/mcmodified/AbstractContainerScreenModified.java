@@ -11,14 +11,8 @@ public interface AbstractContainerScreenModified {
     // already implemented methods via mixin
     // for VrInvScreen
 
-
-    default void visorEssentials$fillVRSlots(@NotNull List<ContainerSlot> slots){
-
-    }
-
-    @NotNull
-    default List<ContainerSlot> visorEssentials$getVRSlots(){
-        return List.of();
+    default boolean visorEssentials$supportsVRContainer(){
+        return false;
     }
 
     default void visorEssentials$setVRContainer(boolean flag){
@@ -30,17 +24,42 @@ public interface AbstractContainerScreenModified {
     }
 
 
+    default void visorEssentials$fillVRSlots(@NotNull List<ContainerSlot> slots){
+
+    }
+
+    @NotNull
+    default List<ContainerSlot> visorEssentials$getVRSlots(){
+        return List.of();
+    }
+
+
+
     default int visorEssentials$getEdgeX(){
         return -1;
     }
+    default void visorEssentials$setEdgeX(int value){
+
+    }
+
     default int visorEssentials$getEdgeY(){
         return -1;
+    }
+    default void visorEssentials$setEdgeY(int value){
+
     }
 
     default int visorEssentials$getEdgeWidth(){
         return -1;
     }
+    default void visorEssentials$setEdgeWidth(int value){
+
+    }
+
     default int visorEssentials$getEdgeHeight(){
         return -1;
+    }
+    default void visorEssentials$setEdgeHeight(int value){
+
     }
 }

@@ -36,6 +36,7 @@ public class VROverlayTemplateInventory extends VROverlayTemplateScreenInScreen<
     @Override
     protected void onTick() {
         if(!isVisible()) return;
+
         var overlayContainer =
                 ClientContext.overlayManager.getOverlay(
                         VROverlayContainer.ID,
@@ -76,7 +77,10 @@ public class VROverlayTemplateInventory extends VROverlayTemplateScreenInScreen<
         if(minecraft.screen instanceof AbstractContainerScreen<?>){
             return false;
         }
-        if (minecraft.isPaused() || minecraft.player == null) {
+        if (minecraft.isPaused()
+                || minecraft.level == null
+                || minecraft.player == null
+                || minecraft.getEntityRenderDispatcher().camera == null) {
             return false;
         }
         if (ClientContext.overlayManager.getKeyboardAccessor().isVisible()) {

@@ -37,6 +37,15 @@ public abstract class AbstractContainerScreenMixin <T extends AbstractContainerM
     @Unique
     private boolean visorEssentials$isVrContainer;
 
+    @Unique
+    private int visorEssentials$edgeX = -1;
+    @Unique
+    private int visorEssentials$edgeY = -1;
+    @Unique
+    private int visorEssentials$edgeWidth = -1;
+    @Unique
+    private int visorEssentials$edgeHeight = -1;
+
     protected AbstractContainerScreenMixin(Component title) {
         super(title);
     }
@@ -206,4 +215,42 @@ public abstract class AbstractContainerScreenMixin <T extends AbstractContainerM
         return visorEssentials$vrSlots;
     }
 
+
+    @Override
+    public void visorEssentials$setEdgeX(int value) {
+        visorEssentials$edgeX = value;
+    }
+    @Override
+    public void visorEssentials$setEdgeY(int value) {
+        visorEssentials$edgeY = value;
+    }
+
+    @Override
+    public void visorEssentials$setEdgeWidth(int value) {
+        visorEssentials$edgeWidth = value;
+    }
+    @Override
+    public void visorEssentials$setEdgeHeight(int value) {
+        visorEssentials$edgeHeight = value;
+    }
+
+    @Override
+    public int visorEssentials$getEdgeX() {
+        return visorEssentials$edgeX;
+    }
+
+    @Override
+    public int visorEssentials$getEdgeY() {
+        return visorEssentials$edgeY;
+    }
+
+    @Override
+    public int visorEssentials$getEdgeWidth() {
+        return visorEssentials$edgeWidth;
+    }
+
+    @Override
+    public int visorEssentials$getEdgeHeight() {
+        return visorEssentials$edgeHeight;
+    }
 }
