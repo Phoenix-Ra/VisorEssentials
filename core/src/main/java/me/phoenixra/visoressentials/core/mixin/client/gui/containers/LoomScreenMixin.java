@@ -50,9 +50,17 @@ public abstract class LoomScreenMixin
     private void visorEssentials$background(GuiGraphics instance, ResourceLocation atlasLocation, int x, int y, int uOffset, int vOffset, int uWidth, int vHeight){
         if(visorEssentials$isVRContainer()){
             instance.blit(visorEssentials$VrTexture, x, y, uOffset, vOffset, uWidth, vHeight);
+            imageHeight = 166;
             return;
         }
         instance.blit(atlasLocation, x, y, uOffset, vOffset, uWidth, vHeight);
+    }
+    @Inject(method = "renderBg", at = @At("TAIL"))
+    private void visorEssentials$background2(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY, CallbackInfo ci){
+        if(visorEssentials$isVRContainer()){
+            imageHeight = 86;
+            return;
+        }
     }
 
 
