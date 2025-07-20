@@ -6,6 +6,13 @@ architectury {
     platformSetupLoomIde()
     forge()
 }
+loom {
+    accessWidenerPath = project(":core").file("src/main/resources/visor_essentials.accesswidener")
+
+    forge {
+        mixinConfig "visor_essentials.mixins.json"
+    }
+}
 
 configurations {
     common
@@ -34,14 +41,15 @@ dependencies {
 
     //mixin extras
     compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:${libs.versions.mixinExtras.get()}"))
+    compileOnly(project(path: ':core', configuration: 'namedElements'))
 
 }
 
 processResources {
-    inputs.property "version", project.version
+    inputs.property "version", parent.version
 
     filesMatching("META-INF/mods.toml") {
-        expand "version": project.version
+        expand "version": parent.version
     }
 }
 

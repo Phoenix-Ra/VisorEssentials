@@ -2,12 +2,17 @@ architectury {
     common(rootProject.enabled_platforms.split(","))
 }
 
+loom{
+    accessWidenerPath = file("src/main/resources/visor_essentials.accesswidener")
+}
+
 dependencies {
     // @Environment annotation and mixin extras
     modImplementation(libs.fabric.loader)
 
     modApi(libs.architectury.lib)
 
+    modApi parent.fileTree(dir: 'libs', include: '*.jar')
 
 
 }

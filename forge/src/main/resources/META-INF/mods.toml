@@ -1,0 +1,36 @@
+modLoader = "javafml"
+loaderVersion = "[46,)"
+license = "LGPLv3"
+
+[[mods]]
+modId = "visor_essentials"
+version = "${version}"
+displayName = "VisorEssentials"
+logoFile = "icon.png"
+authors = "PhoenixRa"
+displayTest = "NONE"
+description = '''
+The Addon for Visor, extending VR experience
+
+'''
+
+[[dependencies.visor_essentials]]
+modId = "visor"
+mandatory = true
+versionRange = "[0.1.0,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.visor_essentials]]
+modId = "forge"
+mandatory = true
+versionRange = "[46,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.visor_essentials]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.20,1.20.1]"
+ordering = "AFTER"
+side = "BOTH"

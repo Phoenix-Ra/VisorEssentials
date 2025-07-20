@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "visor_essentials",
+  "version": "${version}",
+
+  "name": "VisorEssentials",
+  "description": "The Addon for Visor, extending VR experience",
+  "authors": [
+    "PhoenixRa"
+  ],
+  "icon": "icon.png",
+  "license": "LGPLv3",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "me.phoenixra.visoressentials.loader.fabric.VisorEssentialsMod"
+    ]
+  },
+  "mixins": [
+    "visor_essentials.mixins.json"
+  ],
+  "depends": {
+    "visor": ">=0.1.0-0",
+    "fabricloader": ">=0.14.14",
+    "minecraft": ["1.20", "1.20.1"],
+    "java": ">=17"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}

@@ -7,7 +7,9 @@ architectury {
     fabric()
 }
 
-
+loom {
+    accessWidenerPath = project(":core").file("src/main/resources/visor_essentials.accesswidener")
+}
 
 configurations {
     common
@@ -19,7 +21,7 @@ configurations {
 version = version+"-fabric"
 dependencies {
     compileOnly(project(path: ':core', configuration: 'namedElements'))
-    compileOnly("org.reflections:reflections:0.10.2")
+
 
 
     shadowCommon(project(path: ":core", configuration: "transformProductionFabric")) { transitive false }
@@ -49,10 +51,10 @@ dependencies {
 }
 
 processResources {
-    inputs.property "version", project.version
+    inputs.property "version", parent.version
 
     filesMatching("fabric.mod.json") {
-        expand "version": project.version
+        expand "version": parent.version
     }
 }
 

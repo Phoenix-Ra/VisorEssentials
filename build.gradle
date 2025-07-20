@@ -64,7 +64,6 @@ subprojects {
         }
 
 
-
         compileOnly(libs.bundles.annotations)
         annotationProcessor(libs.bundles.annotations)
 
