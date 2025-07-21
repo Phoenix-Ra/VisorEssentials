@@ -33,21 +33,9 @@ plugins {
     id 'java'
     id 'java-library'
     id 'maven-publish'
-    alias(libs.plugins.axion.release)
     alias(libs.plugins.architectury)
     alias(libs.plugins.loom)             apply false
     alias(libs.plugins.loom.quiltflower) apply false
-}
-scmVersion {
-    tag {
-        prefix = ""
-    }
-
-
-    //versionIncrementer "incrementMajor"
-    //versionIncrementer "incrementMinor"
-    versionIncrementer "incrementPatch"
-
 }
 
 group = project_group
