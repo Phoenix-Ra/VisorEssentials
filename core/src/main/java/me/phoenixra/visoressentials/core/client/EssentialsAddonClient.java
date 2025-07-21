@@ -5,6 +5,7 @@ import me.phoenixra.visor.api.VisorAPI;
 import me.phoenixra.visor.api.common.addon.VisorAddon;
 import me.phoenixra.visor.core.client.ClientContext;
 import me.phoenixra.visoressentials.core.client.gui.overlays.VROverlayContainer;
+import me.phoenixra.visoressentials.core.client.gui.overlays.VROverlayDraggedItem;
 import me.phoenixra.visoressentials.core.common.VisorEssentials;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import org.apache.logging.log4j.LogManager;
@@ -24,6 +25,10 @@ public class EssentialsAddonClient implements VisorAddon {
         ClientContext.overlayManager.getOverlaysRegistry()
                 .registerElements(
                         List.of(
+                                new VROverlayDraggedItem(
+                                        this,
+                                        VROverlayDraggedItem.ID
+                                ),
                                 new VROverlayContainer(
                                         this, VROverlayContainer.ID
                                 )

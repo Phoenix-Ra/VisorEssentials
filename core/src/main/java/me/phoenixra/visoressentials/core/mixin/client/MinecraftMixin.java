@@ -21,9 +21,13 @@ import net.minecraft.world.phys.HitResult;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Mixin(Minecraft.class)
 public class MinecraftMixin {
@@ -48,6 +52,19 @@ public class MinecraftMixin {
     public void visor$UseVRContainerScreen(Screen screen, CallbackInfo info) {
         if(VisorState.getState().isNotActive()) return;
 
+        // we need containers attached to entity or block,
+        // otherwise display it vanilla way
+        if(hitResult == null
+                || hitResult.getType() == HitResult.Type.MISS){
+            return;
+        }
+
+        // if already have screen opened, don't use container overlay,
+        // This approach helps with server GUIs support and just more stable
+        if (this.screen != null) {
+            return;
+        }
+
         if (!(screen instanceof InventoryScreen)
                 && !(screen instanceof CreativeModeInventoryScreen)
                 && (screen instanceof AbstractContainerScreen<?> containerScreen)) {
@@ -58,9 +75,7 @@ public class MinecraftMixin {
             }
             info.cancel();
 
-            if (this.screen != null) {
-                Minecraft.getInstance().setScreen(null);
-            }
+
             var overlayContainer = ClientContext.overlayManager
                     .getOverlay(
                             "container",
@@ -153,4 +168,5 @@ public class MinecraftMixin {
 
         }
     }
+
 }

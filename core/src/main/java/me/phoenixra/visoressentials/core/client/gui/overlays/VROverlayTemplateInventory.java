@@ -74,7 +74,7 @@ public class VROverlayTemplateInventory extends VROverlayTemplateScreenInScreen<
                 .isTracking()) {
             return false;
         }
-        if(minecraft.screen instanceof AbstractContainerScreen<?>){
+        if(minecraft.screen != null){
             return false;
         }
         if (minecraft.isPaused()
