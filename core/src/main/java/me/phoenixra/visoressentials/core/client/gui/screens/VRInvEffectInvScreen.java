@@ -5,13 +5,11 @@ import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.MobEffectTextureManager;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffectUtil;
@@ -19,7 +17,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,7 +24,7 @@ public abstract class VRInvEffectInvScreen extends AbstractContainerScreen<Abstr
 
     @Setter
     @Getter
-    protected boolean withCrafting;
+    protected boolean fullInventory;
     protected boolean hasEffects;
     public VRInvEffectInvScreen(AbstractContainerMenu menu,
                                 Inventory inventory,
@@ -43,7 +40,7 @@ public abstract class VRInvEffectInvScreen extends AbstractContainerScreen<Abstr
     private void renderEffects(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         int startPos = this.leftPos + this.imageWidth + 2;
         // [-- Modified
-        startPos -= - (withCrafting ? 0 : 36);
+        startPos -= - (fullInventory ? 0 : 36);
         // --]
         int j = this.width - startPos;
         Collection<MobEffectInstance> collection = this.minecraft.player.getActiveEffects();

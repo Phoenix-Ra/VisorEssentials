@@ -24,11 +24,11 @@ import java.util.List;
 
 
 public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContainerScreenModified {
-    private ResourceLocation IMAGE_WITH_CRAFTING = new ResourceLocation(
-            VisorEssentials.MOD_ID,"textures/gui/inventory_with_crafting.png"
+    private ResourceLocation IMAGE_FULL = new ResourceLocation(
+            VisorEssentials.MOD_ID,"textures/gui/inventory.png"
     );
-    private ResourceLocation IMAGE_WITHOUT_CRAFTING = new ResourceLocation(
-            VisorEssentials.MOD_ID,"textures/gui/inventory_without_crafting.png"
+    private ResourceLocation IMAGE_SIMPLIFIED = new ResourceLocation(
+            VisorEssentials.MOD_ID,"textures/gui/inventory_simplified.png"
     );
 
 
@@ -49,14 +49,14 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
     public void visorEssentials$fillVRSlots(
             @NotNull List<ContainerSlot> slots
     ) {
-        withCrafting = !ClientContext.overlayManager.getOverlay(VROverlayContainer.ID).isEnabled();
+        fullInventory = !ClientContext.overlayManager.getOverlay(VROverlayContainer.ID).isEnabled();
 
         slots.clear();
         for(Slot slot : menu.slots){
             int posX = 0;
             int posY = 0;
             if((slot.container instanceof CraftingContainer)
-                    && withCrafting){
+                    && fullInventory){
                 // 2x2 grid layout
                 int index = slot.getContainerSlot();
                 int row = index / 2;
@@ -65,49 +65,43 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
                 posY = 26 + row * 18;
                 slots.add(new ContainerSlot(slot, posX,posY));
             }else if(slot.container instanceof Inventory){
-
-                //simplified and default backgrounds have different width,
-                //affecting on slot positions except 9x3 slots
-                int xMult = withCrafting ? 1 : 0;
-
                 if(slot.getContainerSlot()<=8){
                     //hotbar
-                    xMult = withCrafting ? 0 : 1;
                     switch (slot.getContainerSlot()){
                         case 0 -> {
-                            posX = 121 + 41 * xMult;
+                            posX = 121;
                             posY = 38;
                         }
                         case 1 -> {
-                            posX = 121 + 41 * xMult;
+                            posX = 121;
                             posY = 11;
                         }
                         case 2 -> {
-                            posX = 148 + 41 * xMult;
+                            posX = 148;
                             posY = 11;
                         }
                         case 3 -> {
-                            posX = 148 + 41 * xMult;
+                            posX = 148;
                             posY = 38;
                         }
                         case 4 -> {
-                            posX = 148 + 41 * xMult;
+                            posX = 148;
                             posY = 65;
                         }
                         case 5 -> {
-                            posX = 121 + 41 * xMult;
+                            posX = 121;
                             posY = 65;
                         }
                         case 6 -> {
-                            posX = 94 + 41 * xMult;
+                            posX = 94;
                             posY = 65;
                         }
                         case 7 -> {
-                            posX = 94 + 41 * xMult;
+                            posX = 94;
                             posY = 38;
                         }
                         case 8 -> {
-                            posX = 94 + 41 * xMult;
+                            posX = 94;
                             posY = 11;
                         }
                     }
@@ -120,15 +114,16 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
                     posX = 49 + col * 18;
                     posY = 96 + row * 18;
                 }else{
+                    if(!fullInventory) continue;
                     // equipment slots
                     if(slot.getContainerSlot() == 40) continue; //ignore offhand
                     int index = slot.getContainerSlot() - 36;
-                    posX = 49 - 41*xMult;
+                    posX = 8;
                     posY = 62 + index * -18;
                 }
                 slots.add(new ContainerSlot(slot,posX,posY));
             }
-            else if(withCrafting && slot instanceof ResultSlot){
+            else if(fullInventory && slot instanceof ResultSlot){
                 posX = 237;
                 posY = 36;
                 slots.add(new ContainerSlot(slot, posX,posY));
@@ -176,17 +171,17 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
         // [-- Modified
         //guiGraphics.blit(INVENTORY_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
 
-        guiGraphics.blit(withCrafting
-                        ? IMAGE_WITH_CRAFTING : IMAGE_WITHOUT_CRAFTING,
+        guiGraphics.blit(fullInventory
+                        ? IMAGE_FULL : IMAGE_SIMPLIFIED,
                 width/2-258/2, height/2-156/2,
                 0, 0.0F, 0.0F,
                 258, 156,
                 258,156
         );
 
-        int extraX = 40 * (withCrafting ? 0 :1);
-
-        renderEntityInInventoryFollowsMouse(guiGraphics, i + 51 + extraX, j + 75, 30, (float)(i + 51 + extraX) - this.xMouse, (float)(j + 75 - 50) - this.yMouse, this.minecraft.player);
+        if(fullInventory) {
+            renderEntityInInventoryFollowsMouse(guiGraphics, i + 51, j + 75, 30, (float) (i + 51) - this.xMouse, (float) (j + 75 - 50) - this.yMouse, this.minecraft.player);
+        }
         // --]
     }
 
@@ -320,7 +315,7 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
 
     @Override
     public int visorEssentials$getEdgeX() {
-        return withCrafting ? leftPos : leftPos + 40;
+        return fullInventory ? leftPos : leftPos + 40;
     }
 
     @Override
@@ -331,10 +326,10 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
     @Override
     public int visorEssentials$getEdgeWidth() {
         if(hasEffects){
-            return withCrafting
+            return fullInventory
                     ? imageWidth + 40 : imageWidth - 40;
         }else {
-            return withCrafting
+            return fullInventory
                     ? imageWidth : imageWidth - 80;
         }    }
 

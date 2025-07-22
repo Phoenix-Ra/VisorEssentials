@@ -14,7 +14,6 @@ import me.phoenixra.visor.api.common.ControllerHand;
 import me.phoenixra.visor.api.common.addon.VisorAddon;
 import me.phoenixra.visor.core.client.ClientContext;
 import me.phoenixra.visoressentials.core.client.gui.screens.VRInvScreen;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
@@ -51,7 +50,7 @@ public class VROverlayTemplateInventory extends VROverlayTemplateScreenInScreen<
             screen.init(minecraft, width, height);
         }else{
             boolean craftingAllowed = !overlayContainer.isEnabled();
-            if (craftingAllowed != screen.isWithCrafting()
+            if (craftingAllowed != screen.isFullInventory()
                     || menu != screen.getMenu()) {
                 screen = new VRInvScreen(menu, minecraft.player.getInventory());
                 screen.init(minecraft, width, height);

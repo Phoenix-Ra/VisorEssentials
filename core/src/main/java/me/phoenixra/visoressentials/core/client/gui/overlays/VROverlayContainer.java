@@ -73,7 +73,6 @@ public class VROverlayContainer extends VROverlayScreenInScreen<AbstractContaine
 
     @Override
     protected void onTick() {
-
         if (minecraft.screen != null || minecraft.player == null) {
             setEnabled(false);
             return;

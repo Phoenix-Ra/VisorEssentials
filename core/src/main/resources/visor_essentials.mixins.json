@@ -28,21 +28,5 @@
   ],
   "minVersion": "0.8.4",
   "mixins": [
-    "common.inventory.AbstractFurnaceMenuMixin",
-    "common.inventory.BeaconMenuMixin",
-    "common.inventory.BrewingStandMenuMixin",
-    "common.inventory.CartographyTableMenuMixin",
-    "common.inventory.ChestMenuMixin",
-    "common.inventory.CraftingMenuMixin",
-    "common.inventory.DispenserMenuMixin",
-    "common.inventory.EnchantmentMenuMixin",
-    "common.inventory.GrindstoneMenuMixin",
-    "common.inventory.HopperMenuMixin",
-    "common.inventory.HorseInventoryMenuMixin",
-    "common.inventory.ItemCombinerMenuMixin",
-    "common.inventory.LoomMenuMixin",
-    "common.inventory.MerchantMenuMixin",
-    "common.inventory.ShulkerBoxMenuMixin",
-    "common.inventory.StoneCutterMenuMixin"
   ]
 }
