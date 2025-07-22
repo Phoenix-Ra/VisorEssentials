@@ -8,7 +8,7 @@ architectury {
 }
 
 loom {
-    accessWidenerPath = project(":core").file("src/main/resources/visor_essentials.accesswidener")
+    accessWidenerPath = project(":mod-core").file("src/main/resources/visor_essentials.accesswidener")
 }
 
 configurations {
@@ -20,12 +20,12 @@ configurations {
 }
 version = version+"-fabric"
 dependencies {
-    compileOnly(project(path: ':core', configuration: 'namedElements'))
+    compileOnly(project(path: ':mod-core', configuration: 'namedElements'))
 
 
 
-    shadowCommon(project(path: ":core", configuration: "transformProductionFabric")) { transitive false }
-    common(project(path: ":core", configuration: "namedElements")) { transitive false }
+    shadowCommon(project(path: ":mod-core", configuration: "transformProductionFabric")) { transitive false }
+    common(project(path: ":mod-core", configuration: "namedElements")) { transitive false }
 
 
     String fabricApiVersion = "${libs.versions.fabric.api.get()}+${libs.versions.minecraftVersion.get()}";
@@ -80,7 +80,7 @@ remapJar {
 }
 
 sourcesJar {
-    def commonSources = project(":core").sourcesJar
+    def commonSources = project(":mod-core").sourcesJar
     dependsOn commonSources
     from commonSources.archiveFile.map { zipTree(it) }
 }

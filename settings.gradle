@@ -21,4 +21,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = 'VisorEssentials'
-include 'core','forge','fabric'
+include 'mod-core','mod-forge','mod-fabric'
