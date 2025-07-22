@@ -2,6 +2,7 @@ package me.phoenixra.visoressentials.core.client.gui.overlays;
 
 import lombok.Getter;
 import lombok.Setter;
+import me.phoenixra.visor.api.VisorAPI;
 import me.phoenixra.visor.api.client.data.PoseDataType;
 import me.phoenixra.visor.api.client.gui.overlay.framework.screen.VROverlayScreenInScreen;
 import me.phoenixra.visor.api.common.addon.VisorAddon;
@@ -72,6 +73,7 @@ public class VROverlayContainer extends VROverlayScreenInScreen<AbstractContaine
 
     @Override
     protected void onTick() {
+
         if (minecraft.screen != null || minecraft.player == null) {
             setEnabled(false);
             return;
