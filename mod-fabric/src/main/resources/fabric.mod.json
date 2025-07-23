@@ -4,7 +4,7 @@
   "version": "${version}",
 
   "name": "VisorEssentials",
-  "description": "The Addon for Visor, extending VR experience",
+  "description": "Visor Addon, that is aimed to enhance the VR experience",
   "authors": [
     "PhoenixRa"
   ],
