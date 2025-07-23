@@ -6,6 +6,7 @@ import me.phoenixra.visor.api.VisorAPI;
 import me.phoenixra.visor.api.client.data.PoseDataType;
 import me.phoenixra.visor.api.client.gui.overlay.framework.screen.VROverlayScreenInScreen;
 import me.phoenixra.visor.api.common.addon.VisorAddon;
+import me.phoenixra.visor.api.common.addon.element.ElementPriority;
 import me.phoenixra.visor.api.common.utils.VRMathUtils;
 import me.phoenixra.visor.core.client.ClientContext;
 import me.phoenixra.visor.core.client.data.VRClientPlayerImpl;
@@ -56,7 +57,7 @@ public class VROverlayContainer extends VROverlayScreenInScreen<AbstractContaine
 
     public VROverlayContainer(@NotNull VisorAddon owner,
                               @NotNull String id) {
-        super(owner, id, null);
+        super(owner, id, ElementPriority.LOW, 1.0f,null);
     }
 
     @Override
