@@ -12,7 +12,7 @@ dependencies {
 
     modApi(libs.architectury.lib)
 
-    //modApi("com.github.Phoenix-Ra:Visor:0.0.11")
-    modApi name: 'Visor-0.1.0-api_fabric'
+    modApi("com.github.VisorMod.Visor:fabric:0.1.0-pre16")
+
 }
 
