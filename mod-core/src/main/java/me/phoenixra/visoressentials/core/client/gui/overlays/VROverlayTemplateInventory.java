@@ -1,5 +1,6 @@
 package me.phoenixra.visoressentials.core.client.gui.overlays;
 
+import me.phoenixra.visor.api.VisorAPI;
 import me.phoenixra.visor.api.client.data.PoseAnchor;
 import me.phoenixra.visor.api.client.data.PoseDataType;
 import me.phoenixra.visor.api.client.data.PoseElement;
@@ -12,7 +13,6 @@ import me.phoenixra.visor.api.client.gui.overlay.template.options.types.OverlayO
 import me.phoenixra.visor.api.client.gui.overlay.template.options.types.OverlayOptionsLocation;
 import me.phoenixra.visor.api.common.ControllerHand;
 import me.phoenixra.visor.api.common.addon.VisorAddon;
-import me.phoenixra.visor.core.client.ClientContext;
 import me.phoenixra.visoressentials.core.client.gui.screens.VRInvScreen;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import org.jetbrains.annotations.NotNull;
@@ -37,10 +37,11 @@ public class VROverlayTemplateInventory extends VROverlayTemplateScreenInScreen<
         if(!isVisible()) return;
 
         var overlayContainer =
-                ClientContext.overlayManager.getOverlay(
-                        VROverlayContainer.ID,
-                        VROverlayContainer.class
-                );
+                VisorAPI.client().getGuiManager()
+                        .getOverlayManager().getOverlay(
+                                VROverlayContainer.ID,
+                                VROverlayContainer.class
+                        );
         AbstractContainerMenu menu =
                 overlayContainer.isEnabled() ?
                         overlayContainer.getScreen().getMenu() : minecraft.player.inventoryMenu;
@@ -68,8 +69,8 @@ public class VROverlayTemplateInventory extends VROverlayTemplateScreenInScreen<
 
     @Override
     public boolean updateVisibility() {
-        if (!ClientContext.rawPoseHandler
-                .getControllerData(ControllerHand.OFFHAND)
+        if (!VisorAPI.client().getPlayer()
+                .getControllerRaw(ControllerHand.OFFHAND)
                 .isTracking()) {
             return false;
         }
@@ -82,14 +83,15 @@ public class VROverlayTemplateInventory extends VROverlayTemplateScreenInScreen<
                 || minecraft.getEntityRenderDispatcher().camera == null) {
             return false;
         }
-        if (ClientContext.overlayManager.getKeyboardAccessor().isVisible()) {
+        if (VisorAPI.client().getGuiManager().getOverlayManager()
+                .getKeyboardAccessor().isVisible()) {
             return false;
         }
 
-        VRCursorHandler cursorHandler = ClientContext.cursorHandler;
+        VRCursorHandler cursorHandler = VisorAPI.client().getGuiManager().getCursorHandler();
         boolean focused = cursorHandler.getFocusedOverlay() == this
                 || isAimedAtOverlay(
-                        ClientContext.player
+                        VisorAPI.client().getPlayer()
                                 .getPoseData(PoseDataType.RENDER)
                                 .getHmd(),
                 this,
@@ -121,7 +123,7 @@ public class VROverlayTemplateInventory extends VROverlayTemplateScreenInScreen<
                                     float overlayBoundsExtraY
     ) {
 
-        var cursorHandler = ClientContext.cursorHandler;
+        var cursorHandler = VisorAPI.client().getGuiManager().getCursorHandler();
         if (!cursorHandler.isFacingOverlay(
                 element,
                 overlay,

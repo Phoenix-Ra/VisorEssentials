@@ -12,8 +12,7 @@ dependencies {
 
     modApi(libs.architectury.lib)
 
-    //modApi("com.github.Phoenix-Ra:Visor:0.0.10")
-    modApi parent.fileTree(dir: 'libs', include: '*.jar')
-
+    //modApi("com.github.Phoenix-Ra:Visor:0.0.11")
+    modApi name: 'Visor-0.1.0-api_fabric'
 }
 

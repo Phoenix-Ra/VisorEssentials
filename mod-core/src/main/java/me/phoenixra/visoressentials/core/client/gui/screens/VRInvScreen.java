@@ -2,7 +2,7 @@ package me.phoenixra.visoressentials.core.client.gui.screens;
 
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
-import me.phoenixra.visor.core.client.ClientContext;
+import me.phoenixra.visor.api.VisorAPI;
 import me.phoenixra.visoressentials.core.client.gui.ContainerSlot;
 import me.phoenixra.visoressentials.core.client.gui.overlays.VROverlayContainer;
 import me.phoenixra.visoressentials.core.client.mcmodified.AbstractContainerScreenModified;
@@ -49,7 +49,8 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
     public void visorEssentials$fillVRSlots(
             @NotNull List<ContainerSlot> slots
     ) {
-        fullInventory = !ClientContext.overlayManager.getOverlay(VROverlayContainer.ID).isEnabled();
+        fullInventory = !VisorAPI.client().getGuiManager()
+                .getOverlayManager().getOverlay(VROverlayContainer.ID).isEnabled();
 
         slots.clear();
         for(Slot slot : menu.slots){

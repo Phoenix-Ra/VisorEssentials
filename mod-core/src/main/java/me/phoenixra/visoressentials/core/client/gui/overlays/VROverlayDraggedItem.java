@@ -15,16 +15,15 @@ import me.phoenixra.visor.api.common.addon.VisorAddon;
 import me.phoenixra.visor.api.common.addon.element.ElementPriority;
 import me.phoenixra.visor.api.common.eventbus.listener.VREventHandler;
 import me.phoenixra.visor.api.common.eventbus.listener.VREventListener;
-import me.phoenixra.visor.core.client.ClientContext;
-import me.phoenixra.visor.core.client.gui.overlays.builtin.VROverlayGameScreen;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
-import static me.phoenixra.visor.core.client.VisorClientImpl.MC;
 
 public class VROverlayDraggedItem extends VROverlayScreen
         implements VREventListener {
@@ -47,7 +46,8 @@ public class VROverlayDraggedItem extends VROverlayScreen
 
     @VREventHandler
     public void disableWorldHands(AllowClientFeatureVREvent event){
-        var featureToDisable = ClientContext.cursorHandler.getCursorHand() == ControllerHand.MAIN
+        var featureToDisable = VisorAPI.client().getGuiManager().getCursorHandler()
+                .getCursorHand() == ControllerHand.MAIN
                 ? ClientFeature.VR_WORLD_HAND_MAIN
                 : ClientFeature.VR_WORLD_HAND_OFFHAND;
         if(event.getFeature() == featureToDisable) {
@@ -62,7 +62,8 @@ public class VROverlayDraggedItem extends VROverlayScreen
 
     @Override
     protected void onRender(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        var keyboard = ClientContext.overlayManager.getKeyboardAccessor();
+        var keyboard = VisorAPI.client().getGuiManager().getOverlayManager()
+                .getKeyboardAccessor();
         if(keyboard.isVisible()){
             keyboard.setVisible(false);
         }
@@ -94,20 +95,21 @@ public class VROverlayDraggedItem extends VROverlayScreen
         if(!isDraggingItem()) {
             return false;
         }
-        var cursorHandler = ClientContext.cursorHandler;
+        var cursorHandler = VisorAPI.client().getGuiManager().getCursorHandler();
         if(supportsDragging(cursorHandler.getFocusedOverlay())){
             return false;
         }
 
-        if(!ClientContext.rawPoseHandler.getControllerData(
-                cursorHandler.getCursorHand()).isTracking()){
+        if(!VisorAPI.client().getPlayer().getControllerRaw(
+                     cursorHandler.getCursorHand()
+                ).isTracking()){
             return false;
         }
 
         if(isVisible()){
             var cursorResult  = cursorHandler.getCursorResult(
                     cursorHandler.getCursorHand(),
-                    ClientContext.player.getPoseData(PoseDataType.RENDER),
+                    VisorAPI.client().getPlayer().getPoseData(PoseDataType.RENDER),
                     it->it != this,
                     false
             );
@@ -122,7 +124,7 @@ public class VROverlayDraggedItem extends VROverlayScreen
 
     @Override
     public void updatePose(float partialTicks) {
-        PoseAnchor anchor =  ClientContext.cursorHandler
+        PoseAnchor anchor =  VisorAPI.client().getGuiManager().getCursorHandler()
                 .getCursorHand() == ControllerHand.MAIN
                 ? PoseAnchor.MAIN_HAND
                 : PoseAnchor.OFFHAND;
@@ -140,10 +142,24 @@ public class VROverlayDraggedItem extends VROverlayScreen
 
     @Override
     public boolean mouseClicked(double d, double e, int i) {
-        this.minecraft.gameMode.handleInventoryMouseClick(
-                minecraft.player.containerMenu.containerId,
-                -999, i, ClickType.PICKUP, this.minecraft.player
-        );
+        if(minecraft.player.containerMenu instanceof CreativeModeInventoryScreen.ItemPickerMenu itemPickerMenu){
+            if (i == 0) {
+                this.minecraft.player.drop(itemPickerMenu.getCarried(), true);
+                this.minecraft.gameMode.handleCreativeModeItemDrop(itemPickerMenu.getCarried());
+                itemPickerMenu.setCarried(ItemStack.EMPTY);
+            }
+
+            if (i == 1) {
+                ItemStack itemstack5 = itemPickerMenu.getCarried().split(1);
+                this.minecraft.player.drop(itemstack5, true);
+                this.minecraft.gameMode.handleCreativeModeItemDrop(itemstack5);
+            }
+        }else {
+            this.minecraft.gameMode.handleInventoryMouseClick(
+                    minecraft.player.containerMenu.containerId,
+                    -999, i, ClickType.PICKUP, this.minecraft.player
+            );
+        }
         return true;
     }
     @Override
@@ -157,8 +173,9 @@ public class VROverlayDraggedItem extends VROverlayScreen
     }
 
     private boolean supportsDragging(VROverlay overlay){
-        if(overlay instanceof VROverlayGameScreen){
-            if(MC.screen instanceof AbstractContainerScreen<?>){
+        if(overlay != null
+                && overlay.getId().equals("game_screen")){
+            if(minecraft.screen instanceof AbstractContainerScreen<?>){
                 return true;
             }
         }
@@ -175,9 +192,11 @@ public class VROverlayDraggedItem extends VROverlayScreen
         return false;
     }
     public static boolean isDraggingItem(){
-        return MC.level != null
-                && MC.player.containerMenu != null
-                && MC.player.containerMenu.getCarried() != null
-                && !MC.player.containerMenu.getCarried().isEmpty();
+        Minecraft mc = Minecraft.getInstance();
+        return mc.level != null
+                && mc.player != null
+                && mc.player.containerMenu != null
+                && mc.player.containerMenu.getCarried() != null
+                && !mc.player.containerMenu.getCarried().isEmpty();
     }
 }

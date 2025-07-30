@@ -1,7 +1,6 @@
 package me.phoenixra.visoressentials.core.mixin.client;
 
-import me.phoenixra.visor.core.client.ClientContext;
-import me.phoenixra.visor.core.client.VisorState;
+import me.phoenixra.visor.api.VisorAPI;
 import me.phoenixra.visoressentials.core.client.gui.overlays.VROverlayContainer;
 import me.phoenixra.visoressentials.core.client.mcmodified.AbstractContainerScreenModified;
 import net.minecraft.client.Minecraft;
@@ -50,7 +49,7 @@ public class MinecraftMixin {
      */
     @Inject(method = "setScreen", at = @At("HEAD"), cancellable = true)
     public void visor$UseVRContainerScreen(Screen screen, CallbackInfo info) {
-        if(VisorState.getState().isNotActive()) return;
+        if(VisorAPI.clientState().stateMode().isNotActive()) return;
 
         // we need containers attached to entity or block,
         // otherwise display it vanilla way
@@ -76,7 +75,8 @@ public class MinecraftMixin {
             info.cancel();
 
 
-            var overlayContainer = ClientContext.overlayManager
+            var overlayContainer = VisorAPI.client().getGuiManager()
+                    .getOverlayManager()
                     .getOverlay(
                             "container",
                             VROverlayContainer.class
@@ -102,12 +102,13 @@ public class MinecraftMixin {
     //@TODO move logic to VR input
     @Inject(method = "handleKeybinds", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isUsingItem()Z", shift = At.Shift.BEFORE, ordinal = 0), cancellable = true)
     private void visor$mouseAndOverlays(CallbackInfo ci) {
-        if(VisorState.getState().isNotActive()) return;
+        if(VisorAPI.clientState().stateMode().isNotActive()) return;
 
-        if (ClientContext.cursorHandler.getFocusedOverlay() != null) {
+        if (VisorAPI.client().getGuiManager().getCursorHandler().getFocusedOverlay() != null) {
             ci.cancel();
         }
-        var container = ClientContext.overlayManager
+        var container = VisorAPI.client().getGuiManager()
+                .getOverlayManager()
                 .getOverlay("container", VROverlayContainer.class);
 
 

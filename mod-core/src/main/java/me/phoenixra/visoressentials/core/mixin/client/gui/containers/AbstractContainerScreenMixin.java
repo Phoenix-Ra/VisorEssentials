@@ -1,11 +1,11 @@
 package me.phoenixra.visoressentials.core.mixin.client.gui.containers;
 
+import me.phoenixra.visor.api.VisorAPI;
 import me.phoenixra.visor.api.client.gui.overlay.framework.screen.VROverlayScreenInScreen;
 import me.phoenixra.visor.api.client.gui.overlay.template.framework.VROverlayTemplateScreenInScreen;
-import me.phoenixra.visor.core.client.ClientContext;
-import me.phoenixra.visor.core.client.gui.overlays.builtin.VROverlayGameScreen;
 import me.phoenixra.visoressentials.core.client.gui.ContainerSlot;
 import me.phoenixra.visoressentials.core.client.mcmodified.AbstractContainerScreenModified;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -29,7 +29,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.*;
 
-import static me.phoenixra.visor.core.client.VisorClientImpl.MC;
 
 @Mixin(AbstractContainerScreen.class)
 public abstract class AbstractContainerScreenMixin <T extends AbstractContainerMenu>
@@ -62,9 +61,11 @@ public abstract class AbstractContainerScreenMixin <T extends AbstractContainerM
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;isEmpty()Z", ordinal = 1)
     )
     private boolean visorEssentials$noDraggingItem(ItemStack instance) {
-        var focused = ClientContext.cursorHandler.getFocusedOverlay();
-        if(focused instanceof VROverlayGameScreen){
-            if(MC.screen == this){
+        var focused = VisorAPI.client().getGuiManager().getCursorHandler()
+                .getFocusedOverlay();
+        if(focused != null
+                && focused.getId().equals("game_screen")){
+            if(Minecraft.getInstance().screen == this){
                 return instance.isEmpty();
             }
         }

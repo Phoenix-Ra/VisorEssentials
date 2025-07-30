@@ -32,6 +32,7 @@ buildscript {
 plugins {
     id 'java'
     id 'java-library'
+    id 'idea'
     id 'maven-publish'
     alias(libs.plugins.architectury)
     alias(libs.plugins.loom)             apply false
@@ -99,7 +100,9 @@ allprojects {
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
         maven { url 'https://redempt.dev' }
         maven { url = "https://maven.parchmentmc.org" }
-
+        flatDir {
+            dirs rootProject.file('libs')
+        }
         exclusiveContent {
             forRepository {
                 maven {
@@ -110,6 +113,12 @@ allprojects {
             filter {
                 includeGroup "maven.modrinth"
             }
+        }
+    }
+    idea {
+        module {
+            downloadSources = true
+            downloadJavadoc = true
         }
     }
     compileJava {

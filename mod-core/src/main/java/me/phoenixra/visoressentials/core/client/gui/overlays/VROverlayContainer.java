@@ -3,13 +3,11 @@ package me.phoenixra.visoressentials.core.client.gui.overlays;
 import lombok.Getter;
 import lombok.Setter;
 import me.phoenixra.visor.api.VisorAPI;
+import me.phoenixra.visor.api.client.VRClientPlayer;
 import me.phoenixra.visor.api.client.data.PoseDataType;
 import me.phoenixra.visor.api.client.gui.overlay.framework.screen.VROverlayScreenInScreen;
 import me.phoenixra.visor.api.common.addon.VisorAddon;
 import me.phoenixra.visor.api.common.addon.element.ElementPriority;
-import me.phoenixra.visor.api.common.utils.VRMathUtils;
-import me.phoenixra.visor.core.client.ClientContext;
-import me.phoenixra.visor.core.client.data.VRClientPlayerImpl;
 import me.phoenixra.visoressentials.core.client.mcmodified.AbstractContainerScreenModified;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.BlockPos;
@@ -122,7 +120,7 @@ public class VROverlayContainer extends VROverlayScreenInScreen<AbstractContaine
 
         }
 
-        var facingElement = ClientContext.player
+        var facingElement = VisorAPI.client().getPlayer()
                 .getPoseData(PoseDataType.RENDER)
                 .getHmd();
 
@@ -166,7 +164,7 @@ public class VROverlayContainer extends VROverlayScreenInScreen<AbstractContaine
                     (float) (aimedAtEntity ?
                             sourceEntity.getEyePosition(partialTick).y
                             : sourcePos.y + 1.1),
-                    ClientContext.player
+                    VisorAPI.client().getPlayer()
                             .getPoseData(PoseDataType.RENDER)
                             .convertPositionFrom(
                                     PoseDataType.ROOM,
@@ -213,7 +211,7 @@ public class VROverlayContainer extends VROverlayScreenInScreen<AbstractContaine
     @Override
     public void onEnable() {
         minecraft.player.containerMenu = screen.getMenu();
-        var keyboard = ClientContext.overlayManager.getKeyboardAccessor();
+        var keyboard = VisorAPI.client().getGuiManager().getOverlayManager().getKeyboardAccessor();
         if (keyboard.getAttachedTo() == this) {
             keyboard.setVisible(false);
         }
@@ -238,7 +236,7 @@ public class VROverlayContainer extends VROverlayScreenInScreen<AbstractContaine
     private boolean isOverlayNearPlayer() {
         if (sourcePos == null) return true;
 
-        VRClientPlayerImpl clientPlayer = ClientContext.player;
+        VRClientPlayer clientPlayer = VisorAPI.client().getPlayer();
 
         var roomPos = clientPlayer
                 .getPoseData(PoseDataType.ROOM)
