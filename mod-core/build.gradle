@@ -12,7 +12,7 @@ dependencies {
 
     modApi(libs.architectury.lib)
 
-    modApi("com.github.VisorMod.Visor:fabric:0.1.0-pre16")
+    modApi(libs.visorApi)
 
 }
 
