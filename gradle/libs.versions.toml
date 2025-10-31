@@ -10,7 +10,7 @@ jetbrains              = "23.0.0"
 minecraftVersion       = "1.20.1"
 architectury_lib       = "11.0.5"
 parchment              = "2023.09.03"
-visorApi               = "0.1.0"
+visorApi               = "0.2.0snapshot-1"
 
 #Fabric
 fabric_loader          = "0.16.5"
@@ -18,7 +18,7 @@ fabric_api             = "0.92.3"
 mixinExtras            = "0.4.1"
 
 #Forge
-forgeVersion           = "47.3.22"
+forgeVersion           = "47.4.0"
 
 
 [libraries]

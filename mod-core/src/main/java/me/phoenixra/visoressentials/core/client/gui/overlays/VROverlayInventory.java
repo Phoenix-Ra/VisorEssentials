@@ -5,12 +5,12 @@ import me.phoenixra.visor.api.client.data.PoseAnchor;
 import me.phoenixra.visor.api.client.data.PoseDataType;
 import me.phoenixra.visor.api.client.data.PoseElement;
 import me.phoenixra.visor.api.client.gui.VRCursorHandler;
-import me.phoenixra.visor.api.client.gui.overlay.VROverlay;
-import me.phoenixra.visor.api.client.gui.overlay.template.RegisterVROverlayTemplate;
-import me.phoenixra.visor.api.client.gui.overlay.template.framework.VROverlayTemplateScreenInScreen;
-import me.phoenixra.visor.api.client.gui.overlay.template.options.OverlayOptions;
-import me.phoenixra.visor.api.client.gui.overlay.template.options.types.OverlayOptionsGlobal;
-import me.phoenixra.visor.api.client.gui.overlay.template.options.types.OverlayOptionsLocation;
+import me.phoenixra.visor.api.client.gui.overlays.VROverlay;
+import me.phoenixra.visor.api.client.gui.overlays.VROverlayHelper;
+import me.phoenixra.visor.api.client.gui.overlays.framework.screen.VROverlayScreenInScreen;
+import me.phoenixra.visor.api.client.gui.overlays.options.OverlayOptionGroup;
+import me.phoenixra.visor.api.client.gui.overlays.options.types.OverlayOptionsMisc;
+import me.phoenixra.visor.api.client.gui.overlays.options.types.OverlayOptionsPose;
 import me.phoenixra.visor.api.common.ControllerHand;
 import me.phoenixra.visor.api.common.addon.VisorAddon;
 import me.phoenixra.visoressentials.core.client.gui.screens.VRInvScreen;
@@ -20,20 +20,31 @@ import org.joml.Vector3f;
 
 import java.util.List;
 
-@RegisterVROverlayTemplate(id = VROverlayTemplateInventory.ID, isCreateDefault = true)
-public class VROverlayTemplateInventory extends VROverlayTemplateScreenInScreen<VRInvScreen> {
+public class VROverlayInventory extends VROverlayScreenInScreen<VRInvScreen> {
     public static final String ID = "inventory";
 
-    public VROverlayTemplateInventory(@NotNull VisorAddon owner,
-                                      @NotNull String id) {
-        super(owner, id);
+    protected final OverlayOptionsPose optionsPose;
+
+    public VROverlayInventory(@NotNull VisorAddon owner,
+                              @NotNull String id) {
+        super(owner, id, null);
         setEnabled(true);
+        optionsPose = getOption(OverlayOptionsPose.ID, OverlayOptionsPose.class);
     }
 
 
 
     @Override
     protected void onTick() {
+        VROverlayHelper.applyPose(
+                this,
+                optionsPose.getPositionAnchor(),
+                optionsPose.getRotationAnchor(),
+                optionsPose.getScale(),
+                optionsPose.isAimedRotation(),
+                optionsPose.getPositionOffset(),
+                optionsPose.getRotationOffset()
+        );
         if(!isVisible()) return;
 
         var overlayContainer =
@@ -60,11 +71,24 @@ public class VROverlayTemplateInventory extends VROverlayTemplateScreenInScreen<
 
         screen.tick();
 
-        cursorEdgeX = screen.visorEssentials$getEdgeX();
-        cursorEdgeY = screen.visorEssentials$getEdgeY();
-        cursorEdgeWidth = screen.visorEssentials$getEdgeWidth();
-        cursorEdgeHeight = screen.visorEssentials$getEdgeHeight();
+        cursorBoundsX = screen.visorEssentials$getEdgeX();
+        cursorBoundsY = screen.visorEssentials$getEdgeY();
+        cursorBoundsWidth = screen.visorEssentials$getEdgeWidth();
+        cursorBoundsHeight = screen.visorEssentials$getEdgeHeight();
 
+    }
+
+    @Override
+    protected void onUpdatePose(float partialTicks) {
+        VROverlayHelper.applyPose(
+                this,
+                optionsPose.getPositionAnchor(),
+                optionsPose.getRotationAnchor(),
+                optionsPose.getScale(),
+                optionsPose.isAimedRotation(),
+                optionsPose.getPositionOffset(),
+                optionsPose.getRotationOffset()
+        );
     }
 
     @Override
@@ -87,6 +111,7 @@ public class VROverlayTemplateInventory extends VROverlayTemplateScreenInScreen<
                 .getKeyboardAccessor().isVisible()) {
             return false;
         }
+
 
         VRCursorHandler cursorHandler = VisorAPI.client().getGuiManager().getCursorHandler();
         boolean focused = cursorHandler.getFocusedOverlay() == this
@@ -136,7 +161,8 @@ public class VROverlayTemplateInventory extends VROverlayTemplateScreenInScreen<
                 element,
                 overlay.getPose().getPosition(),
                 overlay.getPose().getRotation(),
-                overlay.getPose().getScale()
+                overlay.getPose().getScale(),
+                overlay.getAspectRatio()
         );
         if (overlayBoundsExtraX != 0 || overlayBoundsExtraY != 0) {
             float multX = overlayBoundsExtraX / 2;
@@ -159,8 +185,7 @@ public class VROverlayTemplateInventory extends VROverlayTemplateScreenInScreen<
         }
 
 
-        return overlay.isCursorWithinBounds(
-                true,
+        return overlay.isWithinCursorBounds(
                 newCursor.x,
                 newCursor.y
         );
@@ -171,29 +196,28 @@ public class VROverlayTemplateInventory extends VROverlayTemplateScreenInScreen<
         return true;
     }
 
+
     @Override
-    protected @NotNull List<OverlayOptions> createOptions() {
+    protected @NotNull List<OverlayOptionGroup<?>> createOptions() {
         return List.of(
-                new OverlayOptionsGlobal(
-                        this,
-                        it->{
-                            it.setUpdateOptionsType(OverlayOptionsGlobal.UpdateOptionsType.TICK);
-                            it.setFormulaOverlayScale("0.5");
-                        }
-                ),
-                new OverlayOptionsLocation(
+                new OverlayOptionsPose(
                         this,
                         it-> {
-                            it.setTickModelView(true);
-                            it.setAimRotation(false);
+                            it.setTickPose(true);
+                            it.setAimedRotation(false);
                             it.setPositionAnchor(PoseAnchor.OFFHAND);
-                            it.setFormulaPosX("-0.07");
-                            it.setFormulaPosY("-0.081");
-                            it.setFormulaPosZ("0.2");
+                            it.setPositionOffset(
+                                    -0.07f,
+                                    -0.081f,
+                                    0.2f
+                            );
                             it.setRotationAnchor(PoseAnchor.OFFHAND);
-                            it.setFormulaRotationX(null);
-                            it.setFormulaRotationY("pi/2");
-                            it.setFormulaRotationZ("pi");
+                            it.setRotationOffset(
+                                    0f,
+                                    (float) (Math.PI/2),
+                                    (float) Math.PI
+                            );
+                            it.setScale(0.5f);
                         }
 
                 )

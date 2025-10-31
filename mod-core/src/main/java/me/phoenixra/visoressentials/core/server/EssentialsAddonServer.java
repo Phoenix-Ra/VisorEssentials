@@ -2,6 +2,7 @@ package me.phoenixra.visoressentials.core.server;
 
 import me.phoenixra.visor.api.common.addon.VisorAddon;
 import me.phoenixra.visoressentials.core.common.VisorEssentials;
+import net.minecraft.network.chat.Component;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -19,6 +20,11 @@ public class EssentialsAddonServer implements VisorAddon {
     @Override
     public @NotNull String getAddonId() {
         return VisorEssentials.MOD_ID;
+    }
+
+    @Override
+    public @NotNull Component getAddonName() {
+        return Component.literal(VisorEssentials.MOD_NAME);
     }
 
     @Override

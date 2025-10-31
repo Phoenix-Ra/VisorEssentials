@@ -17,7 +17,7 @@ Visor Addon, that is aimed to enhance the VR experience
 [[dependencies.visor_essentials]]
 modId = "visor"
 mandatory = true
-versionRange = "[0.1.0-alpha,)"
+versionRange = "[0.2.0-alpha,)"
 ordering = "AFTER"
 side = "BOTH"
 

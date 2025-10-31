@@ -5,11 +5,11 @@ import me.phoenixra.visor.api.client.ClientFeature;
 import me.phoenixra.visor.api.client.data.PoseAnchor;
 import me.phoenixra.visor.api.client.data.PoseDataType;
 import me.phoenixra.visor.api.client.events.AllowClientFeatureVREvent;
-import me.phoenixra.visor.api.client.gui.overlay.VROverlay;
-import me.phoenixra.visor.api.client.gui.overlay.VROverlayHelper;
-import me.phoenixra.visor.api.client.gui.overlay.framework.VROverlayScreen;
-import me.phoenixra.visor.api.client.gui.overlay.framework.screen.VROverlayScreenInScreen;
-import me.phoenixra.visor.api.client.gui.overlay.template.framework.VROverlayTemplateScreenInScreen;
+import me.phoenixra.visor.api.client.gui.overlays.VROverlay;
+import me.phoenixra.visor.api.client.gui.overlays.VROverlayHelper;
+import me.phoenixra.visor.api.client.gui.overlays.framework.VROverlayScreen;
+import me.phoenixra.visor.api.client.gui.overlays.framework.screen.VROverlayScreenInScreen;
+import me.phoenixra.visor.api.client.gui.overlays.framework.template.VROverlayTemplateScreenInScreen;
 import me.phoenixra.visor.api.common.ControllerHand;
 import me.phoenixra.visor.api.common.addon.VisorAddon;
 import me.phoenixra.visor.api.common.addon.element.ElementPriority;
@@ -36,10 +36,10 @@ public class VROverlayDraggedItem extends VROverlayScreen
                                 @NotNull String id) {
         super(owner, id, ElementPriority.HIGHER, 0.1f);
         setEnabled(true);
-        cursorEdgeX = width/2 - 8;
-        cursorEdgeY = height/2 - 8;
-        cursorEdgeWidth = 16;
-        cursorEdgeHeight = 16;
+        cursorBoundsX = width/2 - 8;
+        cursorBoundsY = height/2 - 8;
+        cursorBoundsWidth = 16;
+        cursorBoundsHeight = 16;
         VisorAPI.eventBus().registerListener(owner,this);
     }
 
@@ -123,7 +123,7 @@ public class VROverlayDraggedItem extends VROverlayScreen
 
 
     @Override
-    public void updatePose(float partialTicks) {
+    public void onUpdatePose(float partialTicks) {
         PoseAnchor anchor =  VisorAPI.client().getGuiManager().getCursorHandler()
                 .getCursorHand() == ControllerHand.MAIN
                 ? PoseAnchor.MAIN_HAND

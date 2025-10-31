@@ -5,7 +5,7 @@ import lombok.Setter;
 import me.phoenixra.visor.api.VisorAPI;
 import me.phoenixra.visor.api.client.VRClientPlayer;
 import me.phoenixra.visor.api.client.data.PoseDataType;
-import me.phoenixra.visor.api.client.gui.overlay.framework.screen.VROverlayScreenInScreen;
+import me.phoenixra.visor.api.client.gui.overlays.framework.screen.VROverlayScreenInScreen;
 import me.phoenixra.visor.api.common.addon.VisorAddon;
 import me.phoenixra.visor.api.common.addon.element.ElementPriority;
 import me.phoenixra.visoressentials.core.client.mcmodified.AbstractContainerScreenModified;
@@ -88,17 +88,17 @@ public class VROverlayContainer extends VROverlayScreenInScreen<AbstractContaine
 
         var vrContainer = (AbstractContainerScreenModified)screen;
 
-        cursorEdgeX = vrContainer.visorEssentials$getEdgeX();
-        cursorEdgeY = vrContainer.visorEssentials$getEdgeY();
-        cursorEdgeWidth = vrContainer.visorEssentials$getEdgeWidth();
-        cursorEdgeHeight = vrContainer.visorEssentials$getEdgeHeight();
+        cursorBoundsX = vrContainer.visorEssentials$getEdgeX();
+        cursorBoundsY = vrContainer.visorEssentials$getEdgeY();
+        cursorBoundsWidth = vrContainer.visorEssentials$getEdgeWidth();
+        cursorBoundsHeight = vrContainer.visorEssentials$getEdgeHeight();
 
         super.onTick();
     }
 
 
     @Override
-    public void updatePose(float partialTick) {
+    public void onUpdatePose(float partialTick) {
         Vector3f newPosition;
         Matrix4f newRotation;
 

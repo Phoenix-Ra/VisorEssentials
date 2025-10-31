@@ -1,8 +1,8 @@
 package me.phoenixra.visoressentials.core.mixin.client.gui.containers;
 
 import me.phoenixra.visor.api.VisorAPI;
-import me.phoenixra.visor.api.client.gui.overlay.framework.screen.VROverlayScreenInScreen;
-import me.phoenixra.visor.api.client.gui.overlay.template.framework.VROverlayTemplateScreenInScreen;
+import me.phoenixra.visor.api.client.gui.overlays.framework.screen.VROverlayScreenInScreen;
+import me.phoenixra.visor.api.client.gui.overlays.framework.template.VROverlayTemplateScreenInScreen;
 import me.phoenixra.visoressentials.core.client.gui.ContainerSlot;
 import me.phoenixra.visoressentials.core.client.mcmodified.AbstractContainerScreenModified;
 import net.minecraft.client.Minecraft;
