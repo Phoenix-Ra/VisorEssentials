@@ -32,6 +32,7 @@ buildscript {
 plugins {
     id 'java'
     id 'java-library'
+    id 'idea'
     id 'maven-publish'
     alias(libs.plugins.architectury)
     alias(libs.plugins.loom)             apply false
@@ -100,6 +101,12 @@ allprojects {
         maven { url 'https://redempt.dev' }
         maven { url = "https://maven.parchmentmc.org" }
 
+        // ---- LOCAL DEPENDENCY
+        flatDir {
+            dirs rootProject.file('libs')
+        }
+        // ----
+
         exclusiveContent {
             forRepository {
                 maven {
@@ -112,6 +119,16 @@ allprojects {
             }
         }
     }
+
+    // ---- LOCAL DEPENDENCY
+    idea {
+        module {
+            downloadSources = true
+            downloadJavadoc = true
+        }
+    }
+    // ----
+
     compileJava {
         dependsOn(clean)
     }

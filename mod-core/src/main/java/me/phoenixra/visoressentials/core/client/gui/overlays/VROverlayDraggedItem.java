@@ -2,17 +2,17 @@ package me.phoenixra.visoressentials.core.client.gui.overlays;
 
 import me.phoenixra.visor.api.VisorAPI;
 import me.phoenixra.visor.api.client.ClientFeature;
-import me.phoenixra.visor.api.client.data.PoseAnchor;
-import me.phoenixra.visor.api.client.data.PoseDataType;
 import me.phoenixra.visor.api.client.events.AllowClientFeatureVREvent;
 import me.phoenixra.visor.api.client.gui.overlays.VROverlay;
 import me.phoenixra.visor.api.client.gui.overlays.VROverlayHelper;
 import me.phoenixra.visor.api.client.gui.overlays.framework.VROverlayScreen;
 import me.phoenixra.visor.api.client.gui.overlays.framework.screen.VROverlayScreenInScreen;
 import me.phoenixra.visor.api.client.gui.overlays.framework.template.VROverlayTemplateScreenInScreen;
-import me.phoenixra.visor.api.common.ControllerHand;
+import me.phoenixra.visor.api.client.player.pose.PlayerPoseType;
+import me.phoenixra.visor.api.client.player.pose.PoseAnchor;
+import me.phoenixra.visor.api.common.HandType;
 import me.phoenixra.visor.api.common.addon.VisorAddon;
-import me.phoenixra.visor.api.common.addon.element.ElementPriority;
+import me.phoenixra.visor.api.common.addon.component.ComponentPriority;
 import me.phoenixra.visor.api.common.eventbus.listener.VREventHandler;
 import me.phoenixra.visor.api.common.eventbus.listener.VREventListener;
 import net.minecraft.client.Minecraft;
@@ -34,7 +34,7 @@ public class VROverlayDraggedItem extends VROverlayScreen
 
     public VROverlayDraggedItem(@NotNull VisorAddon owner,
                                 @NotNull String id) {
-        super(owner, id, ElementPriority.HIGHER, 0.1f);
+        super(owner, id, ComponentPriority.HIGHER, 0.1f);
         setEnabled(true);
         cursorBoundsX = width/2 - 8;
         cursorBoundsY = height/2 - 8;
@@ -47,7 +47,7 @@ public class VROverlayDraggedItem extends VROverlayScreen
     @VREventHandler
     public void disableWorldHands(AllowClientFeatureVREvent event){
         var featureToDisable = VisorAPI.client().getGuiManager().getCursorHandler()
-                .getCursorHand() == ControllerHand.MAIN
+                .getCursorHand() == HandType.MAIN
                 ? ClientFeature.VR_WORLD_HAND_MAIN
                 : ClientFeature.VR_WORLD_HAND_OFFHAND;
         if(event.getFeature() == featureToDisable) {
@@ -100,7 +100,7 @@ public class VROverlayDraggedItem extends VROverlayScreen
             return false;
         }
 
-        if(!VisorAPI.client().getPlayer().getControllerRaw(
+        if(!VisorAPI.client().getVRLocalPlayer().getRawController(
                      cursorHandler.getCursorHand()
                 ).isTracking()){
             return false;
@@ -109,7 +109,7 @@ public class VROverlayDraggedItem extends VROverlayScreen
         if(isVisible()){
             var cursorResult  = cursorHandler.getCursorResult(
                     cursorHandler.getCursorHand(),
-                    VisorAPI.client().getPlayer().getPoseData(PoseDataType.RENDER),
+                    VisorAPI.client().getVRLocalPlayer().getPoseData(PlayerPoseType.RENDER),
                     it->it != this,
                     false
             );
@@ -125,7 +125,7 @@ public class VROverlayDraggedItem extends VROverlayScreen
     @Override
     public void onUpdatePose(float partialTicks) {
         PoseAnchor anchor =  VisorAPI.client().getGuiManager().getCursorHandler()
-                .getCursorHand() == ControllerHand.MAIN
+                .getCursorHand() == HandType.MAIN
                 ? PoseAnchor.MAIN_HAND
                 : PoseAnchor.OFFHAND;
         VROverlayHelper.applyPose(

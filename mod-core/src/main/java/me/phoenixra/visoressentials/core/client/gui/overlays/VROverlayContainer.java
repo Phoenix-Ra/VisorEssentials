@@ -3,11 +3,10 @@ package me.phoenixra.visoressentials.core.client.gui.overlays;
 import lombok.Getter;
 import lombok.Setter;
 import me.phoenixra.visor.api.VisorAPI;
-import me.phoenixra.visor.api.client.VRClientPlayer;
-import me.phoenixra.visor.api.client.data.PoseDataType;
 import me.phoenixra.visor.api.client.gui.overlays.framework.screen.VROverlayScreenInScreen;
+import me.phoenixra.visor.api.client.player.pose.PlayerPoseType;
 import me.phoenixra.visor.api.common.addon.VisorAddon;
-import me.phoenixra.visor.api.common.addon.element.ElementPriority;
+import me.phoenixra.visor.api.common.addon.component.ComponentPriority;
 import me.phoenixra.visoressentials.core.client.mcmodified.AbstractContainerScreenModified;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.BlockPos;
@@ -55,7 +54,7 @@ public class VROverlayContainer extends VROverlayScreenInScreen<AbstractContaine
 
     public VROverlayContainer(@NotNull VisorAddon owner,
                               @NotNull String id) {
-        super(owner, id, ElementPriority.LOW, 1.0f,null);
+        super(owner, id, ComponentPriority.LOW, 1.0f,null);
     }
 
     @Override
@@ -120,8 +119,8 @@ public class VROverlayContainer extends VROverlayScreenInScreen<AbstractContaine
 
         }
 
-        var facingElement = VisorAPI.client().getPlayer()
-                .getPoseData(PoseDataType.RENDER)
+        var facingElement = VisorAPI.client().getVRLocalPlayer()
+                .getPoseData(PlayerPoseType.RENDER)
                 .getHmd();
 
         if ((aimedAtBlock || aimedAtEntity || sourcePos != null)) {
@@ -164,10 +163,10 @@ public class VROverlayContainer extends VROverlayScreenInScreen<AbstractContaine
                     (float) (aimedAtEntity ?
                             sourceEntity.getEyePosition(partialTick).y
                             : sourcePos.y + 1.1),
-                    VisorAPI.client().getPlayer()
-                            .getPoseData(PoseDataType.RENDER)
+                    VisorAPI.client().getVRLocalPlayer()
+                            .getPoseData(PlayerPoseType.RENDER)
                             .convertPositionFrom(
-                                    PoseDataType.ROOM,
+                                    PlayerPoseType.RELATIVE,
                                     facingElement.getPosition()
                             ).y
             );
@@ -236,14 +235,14 @@ public class VROverlayContainer extends VROverlayScreenInScreen<AbstractContaine
     private boolean isOverlayNearPlayer() {
         if (sourcePos == null) return true;
 
-        VRClientPlayer clientPlayer = VisorAPI.client().getPlayer();
+        var localPlayer = VisorAPI.client().getVRLocalPlayer();
 
-        var roomPos = clientPlayer
-                .getPoseData(PoseDataType.ROOM)
-                .convertPositionFrom(PoseDataType.PRE_TICK, sourcePos);
+        var roomPos = localPlayer
+                .getPoseData(PlayerPoseType.RELATIVE)
+                .convertPositionFrom(PlayerPoseType.TICK, sourcePos);
 
-        var hmdPos = clientPlayer
-                .getPoseData(PoseDataType.ROOM)
+        var hmdPos = localPlayer
+                .getPoseData(PlayerPoseType.RELATIVE)
                 .getHmd()
                 .getPosition();
         double distance = roomPos.sub(hmdPos).length();

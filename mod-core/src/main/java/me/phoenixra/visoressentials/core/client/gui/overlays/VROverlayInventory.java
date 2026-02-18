@@ -1,18 +1,17 @@
 package me.phoenixra.visoressentials.core.client.gui.overlays;
 
 import me.phoenixra.visor.api.VisorAPI;
-import me.phoenixra.visor.api.client.data.PoseAnchor;
-import me.phoenixra.visor.api.client.data.PoseDataType;
-import me.phoenixra.visor.api.client.data.PoseElement;
 import me.phoenixra.visor.api.client.gui.VRCursorHandler;
 import me.phoenixra.visor.api.client.gui.overlays.VROverlay;
 import me.phoenixra.visor.api.client.gui.overlays.VROverlayHelper;
 import me.phoenixra.visor.api.client.gui.overlays.framework.screen.VROverlayScreenInScreen;
 import me.phoenixra.visor.api.client.gui.overlays.options.OverlayOptionGroup;
-import me.phoenixra.visor.api.client.gui.overlays.options.types.OverlayOptionsMisc;
 import me.phoenixra.visor.api.client.gui.overlays.options.types.OverlayOptionsPose;
-import me.phoenixra.visor.api.common.ControllerHand;
+import me.phoenixra.visor.api.client.player.pose.PlayerPoseType;
+import me.phoenixra.visor.api.client.player.pose.PoseAnchor;
+import me.phoenixra.visor.api.common.HandType;
 import me.phoenixra.visor.api.common.addon.VisorAddon;
+import me.phoenixra.visor.api.common.player.VRPose;
 import me.phoenixra.visoressentials.core.client.gui.screens.VRInvScreen;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import org.jetbrains.annotations.NotNull;
@@ -28,8 +27,8 @@ public class VROverlayInventory extends VROverlayScreenInScreen<VRInvScreen> {
     public VROverlayInventory(@NotNull VisorAddon owner,
                               @NotNull String id) {
         super(owner, id, null);
-        setEnabled(true);
         optionsPose = getOption(OverlayOptionsPose.ID, OverlayOptionsPose.class);
+        setEnabled(true);
     }
 
 
@@ -93,8 +92,8 @@ public class VROverlayInventory extends VROverlayScreenInScreen<VRInvScreen> {
 
     @Override
     public boolean updateVisibility() {
-        if (!VisorAPI.client().getPlayer()
-                .getControllerRaw(ControllerHand.OFFHAND)
+        if (!VisorAPI.client().getVRLocalPlayer()
+                .getRawController(HandType.OFFHAND)
                 .isTracking()) {
             return false;
         }
@@ -116,8 +115,8 @@ public class VROverlayInventory extends VROverlayScreenInScreen<VRInvScreen> {
         VRCursorHandler cursorHandler = VisorAPI.client().getGuiManager().getCursorHandler();
         boolean focused = cursorHandler.getFocusedOverlay() == this
                 || isAimedAtOverlay(
-                        VisorAPI.client().getPlayer()
-                                .getPoseData(PoseDataType.RENDER)
+                        VisorAPI.client().getVRLocalPlayer()
+                                .getPoseData(PlayerPoseType.RENDER)
                                 .getHmd(),
                 this,
                 true,
@@ -141,7 +140,7 @@ public class VROverlayInventory extends VROverlayScreenInScreen<VRInvScreen> {
         }
     }
 
-    private boolean isAimedAtOverlay(@NotNull PoseElement element,
+    private boolean isAimedAtOverlay(@NotNull VRPose vrPose,
                                     @NotNull VROverlay overlay,
                                     boolean checkUpsideDown,
                                     float overlayBoundsExtraX,
@@ -150,7 +149,7 @@ public class VROverlayInventory extends VROverlayScreenInScreen<VRInvScreen> {
 
         var cursorHandler = VisorAPI.client().getGuiManager().getCursorHandler();
         if (!cursorHandler.isFacingOverlay(
-                element,
+                vrPose,
                 overlay,
                 checkUpsideDown
         )) {
@@ -158,7 +157,7 @@ public class VROverlayInventory extends VROverlayScreenInScreen<VRInvScreen> {
         }
 
         Vector3f newCursor = cursorHandler.findCursorPosition3D(
-                element,
+                vrPose,
                 overlay.getPose().getPosition(),
                 overlay.getPose().getRotation(),
                 overlay.getPose().getScale(),

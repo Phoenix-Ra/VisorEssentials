@@ -12,7 +12,13 @@ dependencies {
 
     modApi(libs.architectury.lib)
 
-    modApi(libs.visorApi)
+    // ---- LOCAL DEPENDENCY
+    modApi name: 'Visor-0.3.0-api_fabric'
+    // ----
+
+    // ---- EXTERNAL DEPENDENCY
+    //modApi(libs.visorApi)
+    // ----
 
 }
 

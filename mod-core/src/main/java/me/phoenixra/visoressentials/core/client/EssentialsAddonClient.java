@@ -23,7 +23,7 @@ public class EssentialsAddonClient implements VisorAddon {
     @Override
     public void onAddonLoad() {
         VisorAPI.addonManager().getRegistries().overlays()
-                .registerElements(
+                .registerComponents(
                         List.of(
                                 new VROverlayDraggedItem(
                                         this,
