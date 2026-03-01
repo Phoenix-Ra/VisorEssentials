@@ -1,7 +1,7 @@
 {
   "required": true,
-  "package": "me.phoenixra.visoressentials.core.mixin",
-  "plugin": "me.phoenixra.visoressentials.core.mixin.MixinConfig",
+  "package": "org.vmstudio.essentials.core.mixin",
+  "plugin": "org.vmstudio.essentials.core.mixin.MixinConfig",
   "compatibilityLevel": "JAVA_17",
   "client": [
     "client.MinecraftMixin",

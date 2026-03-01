@@ -13,7 +13,7 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "me.phoenixra.visoressentials.loader.fabric.VisorEssentialsMod"
+      "org.vmstudio.essentials.loader.fabric.VisorEssentialsMod"
     ]
   },
   "mixins": [
