@@ -61,6 +61,9 @@ public abstract class AbstractContainerScreenMixin <T extends AbstractContainerM
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;isEmpty()Z", ordinal = 1)
     )
     private boolean visorEssentials$noDraggingItem(ItemStack instance) {
+        if(VisorAPI.clientState().stateMode().isNotActive()){
+            return instance.isEmpty();
+        }
         var focused = VisorAPI.client().getGuiManager().getCursorHandler()
                 .getFocusedOverlay();
         if(focused != null
