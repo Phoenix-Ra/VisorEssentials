@@ -1,6 +1,9 @@
 package org.vmstudio.essentials.core.client.gui.overlays;
 
 import org.vmstudio.visor.api.VisorAPI;
+import org.vmstudio.visor.api.client.ClientFeature;
+import org.vmstudio.visor.api.client.events.AllowClientFeatureVREvent;
+import org.vmstudio.visor.api.client.events.CursorFocusChangedVREvent;
 import org.vmstudio.visor.api.client.gui.VRCursorHandler;
 import org.vmstudio.visor.api.client.gui.overlays.VROverlay;
 import org.vmstudio.visor.api.client.gui.overlays.VROverlayHelper;
@@ -11,6 +14,8 @@ import org.vmstudio.visor.api.client.player.pose.PlayerPoseType;
 import org.vmstudio.visor.api.client.player.pose.PoseAnchor;
 import org.vmstudio.visor.api.common.HandType;
 import org.vmstudio.visor.api.common.addon.VisorAddon;
+import org.vmstudio.visor.api.common.eventbus.listener.VREventHandler;
+import org.vmstudio.visor.api.common.eventbus.listener.VREventListener;
 import org.vmstudio.visor.api.common.player.VRPose;
 import org.vmstudio.essentials.core.client.gui.screens.VRInvScreen;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -19,7 +24,7 @@ import org.joml.Vector3f;
 
 import java.util.List;
 
-public class VROverlayInventory extends VROverlayScreenInScreen<VRInvScreen> {
+public class VROverlayInventory extends VROverlayScreenInScreen<VRInvScreen> implements VREventListener {
     public static final String ID = "inventory";
 
     protected final OverlayOptionsPose optionsPose;
@@ -29,9 +34,22 @@ public class VROverlayInventory extends VROverlayScreenInScreen<VRInvScreen> {
         super(owner, id, null);
         optionsPose = getOption(OverlayOptionsPose.ID, OverlayOptionsPose.class);
         setEnabled(true);
+        VisorAPI.eventBus().registerListener(owner,this);
     }
 
-
+    @VREventHandler
+    public void disableWorldHands(CursorFocusChangedVREvent event){
+        var usedHand = getUsedHand();
+        if(usedHand == null
+                || event.getHand() != usedHand
+                || event.getNewOverlay() == null){
+            return;
+        }
+        //don't focus hand that is used by inventory
+        if(isVisible()){
+            event.setCanceled(true);
+        }
+    }
 
     @Override
     protected void onTick() {
@@ -106,15 +124,20 @@ public class VROverlayInventory extends VROverlayScreenInScreen<VRInvScreen> {
                 || minecraft.getEntityRenderDispatcher().camera == null) {
             return false;
         }
-        if (VisorAPI.client().getGuiManager().getOverlayManager()
-                .getKeyboardAccessor().isVisible()) {
-            return false;
-        }
 
-
-        VRCursorHandler cursorHandler = VisorAPI.client().getGuiManager().getCursorHandler();
-        boolean focused = cursorHandler.getFocusedOverlay() == this
+        var cursorHandler = VisorAPI.client().getGuiManager().getCursorHandler();
+        var cursorHand = cursorHandler.getCursorHand();
+        var focusedOverlay = cursorHandler.getFocusedOverlay();
+        boolean focused = focusedOverlay == this
                 || isAimedAtOverlay(
+                VisorAPI.client().getVRLocalPlayer()
+                        .getPoseData(PlayerPoseType.RENDER)
+                        .getHand(cursorHand),
+                this,
+                false,
+                0f,
+                0f
+        ) || isAimedAtOverlay(
                         VisorAPI.client().getVRLocalPlayer()
                                 .getPoseData(PlayerPoseType.RENDER)
                                 .getHmd(),
@@ -130,6 +153,13 @@ public class VROverlayInventory extends VROverlayScreenInScreen<VRInvScreen> {
 
 
         return true;
+    }
+
+    @Override
+    protected void onVisibilityChanged() {
+        var usedHand = getUsedHand();
+        VisorAPI.client().getGuiManager().getCursorHandler()
+                .clearFocus(usedHand);
     }
 
     @Override
@@ -190,11 +220,13 @@ public class VROverlayInventory extends VROverlayScreenInScreen<VRInvScreen> {
         );
     }
 
-    @Override
-    public boolean supportsCursorIgnoreVisible() {
-        return true;
+    public HandType getUsedHand(){
+        return switch(optionsPose.getPositionAnchor()){
+            case MAIN_HAND -> HandType.MAIN;
+            case OFFHAND -> HandType.OFFHAND;
+            default -> null;
+        };
     }
-
 
     @Override
     protected @NotNull List<OverlayOptionGroup<?>> createOptions() {

@@ -11,6 +11,7 @@ import org.joml.Vector3f;
 import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.visor.api.client.ClientFeature;
 import org.vmstudio.visor.api.client.events.AllowClientFeatureVREvent;
+import org.vmstudio.visor.api.client.events.KeyboardStateChangedVREvent;
 import org.vmstudio.visor.api.client.gui.overlays.VROverlay;
 import org.vmstudio.visor.api.client.gui.overlays.VROverlayHelper;
 import org.vmstudio.visor.api.client.gui.overlays.framework.VROverlayScreen;
@@ -62,32 +63,12 @@ public class VROverlayDraggedItem extends VROverlayScreen
 
     @Override
     protected void onRender(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        var keyboard = VisorAPI.client().getGuiManager().getOverlayManager()
-                .getKeyboardAccessor();
-        if(keyboard.isVisible()){
-            keyboard.setVisible(false);
-        }
-
         renderFloatingItem(
                 guiGraphics,
                 minecraft.player.containerMenu.getCarried(),
                 width/2 - 8,height/2 - 8,
                 null
         );
-    }
-
-    private void renderFloatingItem(GuiGraphics guiGraphics,
-                                    ItemStack itemStack,
-                                    int posX, int posY,
-                                    String string) {
-        guiGraphics.pose().pushPose();
-        guiGraphics.renderItem(itemStack, posX, posY);
-        guiGraphics.renderItemDecorations(
-                this.font,
-                itemStack,
-                posX, posY, string
-        );
-        guiGraphics.pose().popPose();
     }
 
     @Override
@@ -120,6 +101,7 @@ public class VROverlayDraggedItem extends VROverlayScreen
         }
         return true;
     }
+
 
 
     @Override
@@ -162,14 +144,20 @@ public class VROverlayDraggedItem extends VROverlayScreen
         }
         return true;
     }
-    @Override
-    public void onEnable() {
 
-    }
 
-    @Override
-    public void onDisable() {
-
+    private void renderFloatingItem(GuiGraphics guiGraphics,
+                                    ItemStack itemStack,
+                                    int posX, int posY,
+                                    String string) {
+        guiGraphics.pose().pushPose();
+        guiGraphics.renderItem(itemStack, posX, posY);
+        guiGraphics.renderItemDecorations(
+                this.font,
+                itemStack,
+                posX, posY, string
+        );
+        guiGraphics.pose().popPose();
     }
 
     private boolean supportsDragging(VROverlay overlay){

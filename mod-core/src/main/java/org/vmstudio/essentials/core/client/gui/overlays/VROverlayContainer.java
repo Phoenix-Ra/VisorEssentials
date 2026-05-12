@@ -206,10 +206,6 @@ public class VROverlayContainer extends VROverlayScreenInScreen<AbstractContaine
     @Override
     public void onEnable() {
         minecraft.player.containerMenu = screen.getMenu();
-        var keyboard = VisorAPI.client().getGuiManager().getOverlayManager().getKeyboardAccessor();
-        if (keyboard.getAttachedTo() == this) {
-            keyboard.setVisible(false);
-        }
 
     }
 
