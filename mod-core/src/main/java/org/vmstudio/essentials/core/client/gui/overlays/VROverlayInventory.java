@@ -1,10 +1,7 @@
 package org.vmstudio.essentials.core.client.gui.overlays;
 
 import org.vmstudio.visor.api.VisorAPI;
-import org.vmstudio.visor.api.client.ClientFeature;
-import org.vmstudio.visor.api.client.events.AllowClientFeatureVREvent;
-import org.vmstudio.visor.api.client.events.CursorFocusChangedVREvent;
-import org.vmstudio.visor.api.client.gui.VRCursorHandler;
+import org.vmstudio.visor.api.client.events.gui.CursorFocusChangedVREvent;
 import org.vmstudio.visor.api.client.gui.overlays.VROverlay;
 import org.vmstudio.visor.api.client.gui.overlays.VROverlayHelper;
 import org.vmstudio.visor.api.client.gui.overlays.framework.screen.VROverlayScreenInScreen;

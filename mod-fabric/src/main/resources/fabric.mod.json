@@ -25,7 +25,7 @@
     "java": ">=17"
   },
   "breaks": {
-    "visor": "<0.2.0"
+    "visor": "<0.4.0"
   },
   "suggests": {
     "another-mod": "*"
