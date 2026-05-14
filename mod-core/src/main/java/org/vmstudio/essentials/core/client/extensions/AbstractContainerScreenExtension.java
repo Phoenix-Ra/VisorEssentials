@@ -1,11 +1,11 @@
-package org.vmstudio.essentials.core.client.mcmodified;
+package org.vmstudio.essentials.core.client.extensions;
 
 import org.vmstudio.essentials.core.client.gui.ContainerSlot;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public interface AbstractContainerScreenModified {
+public interface AbstractContainerScreenExtension {
 
     // Defaults used to not override
     // already implemented methods via mixin

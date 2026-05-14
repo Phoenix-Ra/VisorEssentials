@@ -1,6 +1,6 @@
 package org.vmstudio.essentials.core.mixin.client.gui.containers;
 
-import org.vmstudio.essentials.core.client.mcmodified.AbstractContainerScreenModified;
+import org.vmstudio.essentials.core.client.extensions.AbstractContainerScreenExtension;
 import org.vmstudio.essentials.core.common.VisorEssentials;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -21,7 +21,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ContainerScreen.class)
 public abstract class ContainerScreenMixin
         extends AbstractContainerScreen<ChestMenu>
-        implements AbstractContainerScreenModified {
+        implements AbstractContainerScreenExtension {
 
     @Shadow @Final private int containerRows;
 

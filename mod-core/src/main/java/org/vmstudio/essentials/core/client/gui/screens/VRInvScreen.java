@@ -5,7 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.essentials.core.client.gui.ContainerSlot;
 import org.vmstudio.essentials.core.client.gui.overlays.VROverlayContainer;
-import org.vmstudio.essentials.core.client.mcmodified.AbstractContainerScreenModified;
+import org.vmstudio.essentials.core.client.extensions.AbstractContainerScreenExtension;
 import org.vmstudio.essentials.core.common.VisorEssentials;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -23,7 +23,7 @@ import org.joml.Quaternionf;
 import java.util.List;
 
 
-public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContainerScreenModified {
+public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContainerScreenExtension {
     private ResourceLocation IMAGE_FULL = new ResourceLocation(
             VisorEssentials.MOD_ID,"textures/gui/inventory.png"
     );

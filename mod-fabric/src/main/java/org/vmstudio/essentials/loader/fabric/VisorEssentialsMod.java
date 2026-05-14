@@ -1,24 +1,19 @@
 package org.vmstudio.essentials.loader.fabric;
 
+import net.fabricmc.api.ModInitializer;
+import org.vmstudio.essentials.core.client.EssentialsAddonClient;
+import org.vmstudio.essentials.core.common.network.EssentialsChannel;
+import org.vmstudio.essentials.core.server.EssentialsAddonServer;
 import org.vmstudio.visor.api.ModLoader;
 import org.vmstudio.visor.api.VisorAPI;
-import org.vmstudio.essentials.core.client.EssentialsAddonClient;
-import org.vmstudio.essentials.core.server.EssentialsAddonServer;
-import net.fabricmc.api.ModInitializer;
+import org.vmstudio.visor.api.common.addon.VisorAddon;
 
 public class VisorEssentialsMod implements ModInitializer {
     @Override
     public void onInitialize() {
-        if(ModLoader.get().isDedicatedServer()){
-            VisorAPI.registerAddon(
-                    new EssentialsAddonServer()
-            );
-        }else{
-            VisorAPI.registerAddon(
-                    new EssentialsAddonClient()
-            );
-        }
-
-
+        VisorAddon addon = ModLoader.get().isDedicatedServer()
+                ? new EssentialsAddonServer()
+                : new EssentialsAddonClient();
+        VisorAPI.registerAddon(addon);
     }
 }

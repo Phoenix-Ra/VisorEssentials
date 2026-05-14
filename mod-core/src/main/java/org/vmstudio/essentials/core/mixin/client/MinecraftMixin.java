@@ -2,7 +2,7 @@ package org.vmstudio.essentials.core.mixin.client;
 
 import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.essentials.core.client.gui.overlays.VROverlayContainer;
-import org.vmstudio.essentials.core.client.mcmodified.AbstractContainerScreenModified;
+import org.vmstudio.essentials.core.client.extensions.AbstractContainerScreenExtension;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.screens.Screen;
@@ -63,7 +63,7 @@ public class MinecraftMixin {
         if (!(screen instanceof InventoryScreen)
                 && !(screen instanceof CreativeModeInventoryScreen)
                 && (screen instanceof AbstractContainerScreen<?> containerScreen)) {
-           boolean supportsVR = ((AbstractContainerScreenModified)containerScreen)
+           boolean supportsVR = ((AbstractContainerScreenExtension)containerScreen)
                    .visorEssentials$supportsVRContainer();
             if(!supportsVR){
                 return;

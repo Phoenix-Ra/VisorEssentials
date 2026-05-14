@@ -1,6 +1,6 @@
 package org.vmstudio.essentials.core.mixin.client.gui.containers;
 
-import org.vmstudio.essentials.core.client.mcmodified.AbstractContainerScreenModified;
+import org.vmstudio.essentials.core.client.extensions.AbstractContainerScreenExtension;
 import org.vmstudio.essentials.core.common.VisorEssentials;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ImageButton;
@@ -24,7 +24,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(CraftingScreen.class)
 public abstract class CraftingScreenMixin
         extends AbstractContainerScreen<CraftingMenu>
-        implements AbstractContainerScreenModified {
+        implements AbstractContainerScreenExtension {
 
     @Shadow @Final private static ResourceLocation RECIPE_BUTTON_LOCATION;
     @Shadow @Final

@@ -4,7 +4,7 @@ import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.visor.api.client.gui.overlays.framework.screen.VROverlayScreenInScreen;
 import org.vmstudio.visor.api.client.gui.overlays.framework.template.VROverlayTemplateScreenInScreen;
 import org.vmstudio.essentials.core.client.gui.ContainerSlot;
-import org.vmstudio.essentials.core.client.mcmodified.AbstractContainerScreenModified;
+import org.vmstudio.essentials.core.client.extensions.AbstractContainerScreenExtension;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -33,7 +33,7 @@ import java.util.*;
 @Mixin(AbstractContainerScreen.class)
 public abstract class AbstractContainerScreenMixin <T extends AbstractContainerMenu>
         extends Screen
-        implements MenuAccess<T>, AbstractContainerScreenModified {
+        implements MenuAccess<T>, AbstractContainerScreenExtension {
     @Shadow @Final protected T menu;
 
     @Unique

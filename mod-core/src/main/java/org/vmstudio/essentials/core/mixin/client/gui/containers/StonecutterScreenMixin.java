@@ -1,6 +1,6 @@
 package org.vmstudio.essentials.core.mixin.client.gui.containers;
 
-import org.vmstudio.essentials.core.client.mcmodified.AbstractContainerScreenModified;
+import org.vmstudio.essentials.core.client.extensions.AbstractContainerScreenExtension;
 import org.vmstudio.essentials.core.common.VisorEssentials;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(StonecutterScreen.class)
 public abstract class StonecutterScreenMixin
         extends AbstractContainerScreen<StonecutterMenu>
-        implements AbstractContainerScreenModified {
+        implements AbstractContainerScreenExtension {
     @Unique
     private ResourceLocation visorEssentials$VrTexture = new ResourceLocation(
             VisorEssentials.MOD_ID,

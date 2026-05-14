@@ -2,7 +2,7 @@ package org.vmstudio.essentials.core.client.gui.overlays;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.vmstudio.essentials.core.client.mcmodified.AbstractContainerScreenModified;
+import org.vmstudio.essentials.core.client.extensions.AbstractContainerScreenExtension;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
@@ -81,7 +81,7 @@ public class VROverlayContainer extends VROverlayScreenInScreen<AbstractContaine
             return;
         }
 
-        var vrContainer = (AbstractContainerScreenModified)screen;
+        var vrContainer = (AbstractContainerScreenExtension)screen;
 
         cursorBoundsX = vrContainer.visorEssentials$getEdgeX();
         cursorBoundsY = vrContainer.visorEssentials$getEdgeY();
@@ -256,7 +256,7 @@ public class VROverlayContainer extends VROverlayScreenInScreen<AbstractContaine
 
     public void openMenu(AbstractContainerScreen<?> newScreen) {
 
-        ((AbstractContainerScreenModified)newScreen)
+        ((AbstractContainerScreenExtension)newScreen)
                 .visorEssentials$setVRContainer(true);
 
         screen = newScreen;
