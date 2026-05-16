@@ -11,6 +11,7 @@ import org.joml.Vector3f;
 import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.visor.api.client.ClientFeature;
 import org.vmstudio.visor.api.client.events.AllowClientFeatureVREvent;
+import org.vmstudio.visor.api.client.events.render.HandRenderStateVREvent;
 import org.vmstudio.visor.api.client.gui.overlays.VROverlay;
 import org.vmstudio.visor.api.client.gui.overlays.VROverlayHelper;
 import org.vmstudio.visor.api.client.gui.overlays.framework.VROverlayScreen;
@@ -18,6 +19,7 @@ import org.vmstudio.visor.api.client.gui.overlays.framework.screen.VROverlayScre
 import org.vmstudio.visor.api.client.gui.overlays.framework.template.VROverlayTemplateScreenInScreen;
 import org.vmstudio.visor.api.client.player.pose.PlayerPoseType;
 import org.vmstudio.visor.api.client.player.pose.PoseAnchor;
+import org.vmstudio.visor.api.client.render.decoration.hand.HandRenderState;
 import org.vmstudio.visor.api.common.HandType;
 import org.vmstudio.visor.api.common.addon.VisorAddon;
 import org.vmstudio.visor.api.common.addon.component.ComponentPriority;
@@ -43,19 +45,15 @@ public class VROverlayDraggedItem extends VROverlayScreen
         VisorAPI.eventBus().registerListener(owner,this);
     }
 
-
     @VREventHandler
-    public void disableWorldHands(AllowClientFeatureVREvent event){
-        var featureToDisable = VisorAPI.client().getGuiManager().getCursorHandler()
-                .getCursorHand() == HandType.MAIN
-                ? ClientFeature.VR_WORLD_HAND_MAIN
-                : ClientFeature.VR_WORLD_HAND_OFFHAND;
-        if(event.getFeature() == featureToDisable) {
-            if(isDraggingItem()){
-                //To fix flickering on changing focus
-                // from container/inventory to this overlay
-                event.setCanceled(true);
-            }
+    public void onHandRenderState(HandRenderStateVREvent event) {
+        if(!isDraggingItem()){
+            return;
+        }
+        var hand = event.getHandType();
+        if (hand == VisorAPI.client().getGuiManager().getCursorHandler()
+                .getCursorHand()) {
+            event.setState(HandRenderState.GUI_HAND);
         }
     }
 

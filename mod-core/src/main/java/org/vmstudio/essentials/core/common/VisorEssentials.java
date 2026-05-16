@@ -1,8 +1,9 @@
 package org.vmstudio.essentials.core.common;
 
 import net.minecraft.client.Minecraft;
-import org.vmstudio.essentials.core.client.EssentialsAddonClient;
-import org.vmstudio.essentials.core.server.EssentialsAddonServer;
+import org.vmstudio.essentials.core.client.AddonEntryClient;
+import org.vmstudio.essentials.core.server.AddonEntryDedicatedServer;
+import org.vmstudio.essentials.core.server.EssentialsServer;
 
 public abstract class VisorEssentials {
     public static final String MOD_ID = "visor_essentials";
@@ -10,8 +11,11 @@ public abstract class VisorEssentials {
 
     public static Minecraft MC;
 
+
+    public static EssentialsServer SERVER;
+
     public static boolean isActive(){
-        return EssentialsAddonClient.ACTIVE
-                || EssentialsAddonServer.ACTIVE;
+        return AddonEntryClient.ACTIVE
+                || AddonEntryDedicatedServer.ACTIVE;
     }
 }

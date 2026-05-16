@@ -1,10 +1,9 @@
 package org.vmstudio.essentials.loader.forge;
 
 import net.minecraftforge.fml.common.Mod;
-import org.vmstudio.essentials.core.client.EssentialsAddonClient;
+import org.vmstudio.essentials.core.client.AddonEntryClient;
 import org.vmstudio.essentials.core.common.VisorEssentials;
-import org.vmstudio.essentials.core.common.network.EssentialsChannel;
-import org.vmstudio.essentials.core.server.EssentialsAddonServer;
+import org.vmstudio.essentials.core.server.AddonEntryDedicatedServer;
 import org.vmstudio.visor.api.ModLoader;
 import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.visor.api.common.addon.VisorAddon;
@@ -13,8 +12,8 @@ import org.vmstudio.visor.api.common.addon.VisorAddon;
 public class VisorEssentialsMod {
     public VisorEssentialsMod() {
         VisorAddon addon = ModLoader.get().isDedicatedServer()
-                ? new EssentialsAddonServer()
-                : new EssentialsAddonClient();
+                ? new AddonEntryDedicatedServer()
+                : new AddonEntryClient();
         VisorAPI.registerAddon(addon);
     }
 }

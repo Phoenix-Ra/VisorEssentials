@@ -17,12 +17,19 @@ import org.vmstudio.essentials.core.client.extensions.LocalPlayerExtension;
 import org.vmstudio.essentials.core.common.network.EssentialsChannel;
 import org.vmstudio.essentials.core.common.network.toserver.BowTensionPayloadToServer;
 import org.vmstudio.visor.api.VisorAPI;
+import org.vmstudio.visor.api.client.ClientFeature;
+import org.vmstudio.visor.api.client.events.AllowClientFeatureVREvent;
+import org.vmstudio.visor.api.client.events.gui.CursorFocusChangedVREvent;
+import org.vmstudio.visor.api.client.events.render.HandRenderStateVREvent;
+import org.vmstudio.visor.api.client.input.action.framework.VRActionButton;
 import org.vmstudio.visor.api.client.player.pose.PlayerPoseType;
+import org.vmstudio.visor.api.client.render.decoration.hand.HandRenderState;
 import org.vmstudio.visor.api.client.tasks.RegisterVisorTask;
 import org.vmstudio.visor.api.client.tasks.TaskType;
 import org.vmstudio.visor.api.client.tasks.VisorTask;
 import org.vmstudio.visor.api.common.HandType;
 import org.vmstudio.visor.api.common.addon.VisorAddon;
+import org.vmstudio.visor.api.common.eventbus.listener.VREventHandler;
 import org.vmstudio.visor.api.common.eventbus.listener.VREventListener;
 
 import static org.vmstudio.essentials.core.common.VisorEssentials.MC;
@@ -48,14 +55,52 @@ public class ItemBowTask extends VisorTask implements VREventListener {
     private boolean canDrawBow;
     private boolean pressed;
 
-    private float holdBowTime;
+    private long holdBowTime;
     private int lastHapticStep;
     private long lastShoot;
+
+    private HandType bowHolder = HandType.MAIN;
+
+    private HandType savedActiveHand = HandType.MAIN;
+    private boolean activeHandOverridden;
 
     public ItemBowTask(@NotNull VisorAddon owner) {
         super(owner);
         instance = this;
-        VisorAPI.eventBus().registerListener(owner,this);
+        VisorAPI.eventBus().registerListener(owner, this);
+    }
+
+    @VREventHandler
+    public void onAllowClientFeaturesEvent(AllowClientFeatureVREvent event) {
+        if (event.getFeature() == ClientFeature.AIM_EFFECTS && isNotched()) {
+            event.setCanceled(true);
+        }
+    }
+    @VREventHandler
+    public void onHandRenderState(HandRenderStateVREvent event) {
+        if(!isActive(MC.player)){
+            return;
+        }
+        if(event.getState().isGuiHand() || event.getState().isOff()){
+            return;
+        }
+        var hand = event.getHandType();
+        if (isHoldingBow(MC.player, hand.asInteractionHand())) {
+            event.setState(HandRenderState.WORLD_HAND_ITEM_ONLY);
+        }
+        if(isNotched() && hand == bowHolder.opposite()){
+            //ARROW
+            event.setState(HandRenderState.WORLD_HAND_NO_ITEM);
+        }
+    }
+    @VREventHandler
+    public void onCursorFocus(CursorFocusChangedVREvent event){
+        if(!isActive(MC.player)){
+            return;
+        }
+        if(isNotched() && event.getNewOverlay() != null){
+            event.setCanceled(true);
+        }
     }
 
     @Override
@@ -70,47 +115,45 @@ public class ItemBowTask extends VisorTask implements VREventListener {
         final boolean lastCanDraw = this.canDrawBow;
 
         // Update maximum bow draw based on player's height
-        this.maxBowDraw = MC.player.getBbHeight() * 0.22;
+        this.maxBowDraw = player.getBbHeight() * 0.22;
 
         // Determine which hand holds the bow
         final boolean bowInMainHand = isHoldingBow(player, InteractionHand.MAIN_HAND);
         final HandType bowHolder = bowInMainHand ? HandType.MAIN : HandType.OFFHAND;
         final HandType arrowHolder = bowHolder.opposite();
+        this.bowHolder = bowHolder;
 
-        // Cache controller positions
+        // Cache controller positions (grip and aim share the same position in new Visor)
         final Vec3 handArrowPos = renderPose.getHand(arrowHolder).getPositionVec3();
         final Vec3 handBowPos = renderPose.getHand(bowHolder).getPositionVec3();
 
         final float worldScale = renderPose.getWorldScale();
         final float maxDistanceToBowCenter = START_DRAW_DISTANCE * worldScale;
 
-        // Calculate bow center using a custom offset based on maxBowDraw
-        final Vec3 bowHandOffset = renderPose.getHand(
-                bowInMainHand ? HandType.MAIN : HandType.OFFHAND
-                )
+        final Vec3 bowHandOffset = renderPose.getGripHand(bowHolder)
                 .getCustomVector3(new Vector3f(0.0f, worldScale, 0.0f))
                 .scale(maxBowDraw * 0.5);
         final Vec3 bowCenter = handBowPos.add(bowHandOffset);
         final double distanceToBowCenter = handArrowPos.distanceTo(bowCenter);
 
-        // Calculate aim vector
         this.aim = handArrowPos.subtract(handBowPos).normalize();
 
-        // Determine the direction vectors for the arrow and bow hands
         final Vec3 arrowHandDir = new Vec3(
                 renderPose.getHand(arrowHolder)
                         .getCustomVector(new Vector3f(0.0f, 0.0f, -1.0f))
         );
         final Vec3 bowHandDir = new Vec3(
-                renderPose.getHand(bowHolder)
+                renderPose.getGripHand(bowHolder)
                         .getCustomVector(new Vector3f(0.0f, -1.0f, 0.0f))
         );
         final double handsAngle = Math.toDegrees(
                 Math.acos(bowHandDir.dot(arrowHandDir))
         );
 
-        // Update button state
-        this.pressed = MC.options.keyAttack.isDown();
+        final VRActionButton attackMain = inputManager.getActionLeftMouse(HandType.MAIN);
+        final VRActionButton attackOff = inputManager.getActionLeftMouse(HandType.OFFHAND);
+        this.pressed = (attackMain != null && attackMain.isPressed())
+                || (attackOff != null && attackOff.isPressed());
 
         final InteractionHand bowInteractionHand = bowInMainHand
                 ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
@@ -128,7 +171,7 @@ public class ItemBowTask extends VisorTask implements VREventListener {
                 && distanceToBowCenter <= maxDistanceToBowCenter
                 && handsAngle <= START_DRAW_ANGLE) {
             this.canDrawBow = true;
-            this.holdBowTime = (float) Util.getMillis();
+            this.holdBowTime = Util.getMillis();
             if (!this.drawingBow) {
                 ((LocalPlayerExtension) player).visor$setUsingItem(
                         bowItem, bowInteractionHand
@@ -137,6 +180,7 @@ public class ItemBowTask extends VisorTask implements VREventListener {
                         useDuration
                 );
             }
+            onNotched();
         } else if (currentTime - this.holdBowTime > 250) {
             // Delay disable to avoid premature cancellation
             this.canDrawBow = false;
@@ -147,23 +191,24 @@ public class ItemBowTask extends VisorTask implements VREventListener {
             }
         }
 
-        // Start drawing the bow when conditions are met and the attack button was just pressed
         if (!this.drawingBow && this.canDrawBow && this.pressed && !lastPressed) {
             this.drawingBow = true;
+            this.savedActiveHand = vrLocalPlayer.getActiveHand();
+            this.activeHandOverridden = true;
+            vrLocalPlayer.setActiveHand(bowHolder);
             MC.gameMode.useItem(player, bowInteractionHand);
+            onNotched();
         }
 
-        // Shoot if the player releases the button after drawing the bow
-        if (this.drawingBow && !this.pressed && lastPressed && getDrawPercent() > 0.0) {
-            shoot(player, bowInMainHand, bowInMainHand);
+        if (this.drawingBow && !this.pressed && lastPressed && getDrawPercent() >= 0.1f) {
+            shoot(player);
         }
 
-        // Stop drawing if the button is not pressed
         if (!this.pressed) {
             this.drawingBow = false;
+            restoreActiveHand();
         }
 
-        // Provide haptic feedback when drawing is cancelled without shooting
         if (!this.drawingBow && this.canDrawBow && !lastCanDraw) {
             inputManager.triggerHapticPulseBoth(0.0008f);
         }
@@ -173,13 +218,9 @@ public class ItemBowTask extends VisorTask implements VREventListener {
             return;
         }
 
-        // Update drawing state based on the distance between hands
         final boolean canShoot = currentTime > lastShoot + SHOOT_DELAY;
         final double handsDistance = canShoot ? handBowPos.distanceTo(handArrowPos) : 0;
         this.currentBowDraw = (handsDistance - maxDistanceToBowCenter) / worldScale;
-        if (this.currentBowDraw > this.maxBowDraw) {
-            this.currentBowDraw = this.maxBowDraw;
-        }
 
         ((LocalPlayerExtension) player).visor$setUsingItem(bowItem, bowInteractionHand);
         final double drawPercent = getDrawPercent();
@@ -190,15 +231,14 @@ public class ItemBowTask extends VisorTask implements VREventListener {
         }
         ((LocalPlayerExtension) player).visor$setUseItemRemaining(useDuration);
 
-        // Provide haptic feedback while drawing
         final int currentStep = (int) (drawPercent * 10);
         if (currentStep % 2 == 0 && this.lastHapticStep != currentStep) {
             int hapticMicroSec = drawPercent > 0 ? (int) (drawPercent * 500) + 700 : 0;
-            inputManager.triggerHapticPulse(
+            inputManager.triggerHapticPulseMicroSec(
                     arrowHolder, hapticMicroSec
             );
             if (drawPercent == 1.0) {
-                inputManager.triggerHapticPulse(
+                inputManager.triggerHapticPulseMicroSec(
                         bowHolder, hapticMicroSec
                 );
             }
@@ -208,32 +248,59 @@ public class ItemBowTask extends VisorTask implements VREventListener {
 
     @Override
     public void onClear(LocalPlayer player) {
+        restoreActiveHand();
         this.drawingBow = false;
+        this.canDrawBow = false;
+        this.currentBowDraw = 0;
+        this.lastHapticStep = 0;
     }
 
     @Override
     public boolean isActive(LocalPlayer player) {
+        if(MC.screen != null){
+            return false;
+        }
         if (!isEnabled() || player == null || MC.gameMode == null) return false;
         if (!player.isAlive() || player.isSleeping()) return false;
-        return isHoldingBow(player, InteractionHand.MAIN_HAND) || isHoldingBow(player, InteractionHand.OFF_HAND);
+        return isHoldingBow(player, InteractionHand.MAIN_HAND)
+                || isHoldingBow(player, InteractionHand.OFF_HAND);
     }
 
-    private void shoot(Player player, boolean bowInMain, boolean arrowInOffhand) {
+    private void shoot(Player player) {
+        final boolean bowInMain = this.bowHolder == HandType.MAIN;
         VisorAPI.client().getInputManager().triggerHapticPulseBothMicroSec(
-                bowInMain ? 3000 : 500, // main hand
-                arrowInOffhand ? 500 : 3000  // offhand
+                bowInMain ? 3000 : 500,
+                bowInMain ? 500 : 3000
         );
-        // Emulate bow tension for the server to release the bow properly
-        EssentialsChannel.get().sendToServer(new BowTensionPayloadToServer(getDrawPercent()));
+        float drawPercent = getDrawPercent();
+        EssentialsChannel.get().sendToServer(new BowTensionPayloadToServer(drawPercent));
         MC.gameMode.releaseUsingItem(player);
-        EssentialsChannel.get().sendToServer(new BowTensionPayloadToServer(0f));
+        restoreActiveHand();
         this.drawingBow = false;
-        lastShoot = System.currentTimeMillis();
+        this.currentBowDraw = 0;
+        this.lastHapticStep = 0;
+        if (drawPercent > 0.05f) {
+            lastShoot = System.currentTimeMillis();
+        }
+    }
+
+    private void restoreActiveHand() {
+        if (this.activeHandOverridden) {
+            this.activeHandOverridden = false;
+            VisorAPI.client().getVRLocalPlayer().setActiveHand(this.savedActiveHand);
+        }
     }
 
     public boolean isItemModelDisabled(InteractionHand hand) {
         if (!isNotched()) return false;
         return MC.player.getItemInHand(hand).getItem() instanceof ArrowItem;
+    }
+
+
+    private void onNotched(){
+        var cursorHandler = VisorAPI.client().getGuiManager().getCursorHandler();
+        cursorHandler.clearFocus(HandType.MAIN);
+        cursorHandler.clearFocus(HandType.OFFHAND);
     }
 
     public boolean isNotched() {
@@ -249,7 +316,9 @@ public class ItemBowTask extends VisorTask implements VREventListener {
     }
 
     public static boolean isHoldingBowOnActiveHand(LivingEntity e) {
-        return isBow(e.getItemInHand(VisorAPI.client().getVRLocalPlayer().getActiveHand().asInteractionHand()));
+        return isBow(e.getItemInHand(
+                VisorAPI.client().getVRLocalPlayer().getActiveHand().asInteractionHand()
+        ));
     }
 
     public Vec3 getAimVector() {
@@ -257,7 +326,9 @@ public class ItemBowTask extends VisorTask implements VREventListener {
     }
 
     public float getDrawPercent() {
-        return (float) (this.currentBowDraw / this.maxBowDraw);
+        if (this.maxBowDraw <= 0) return 0f;
+        float p = (float) (this.currentBowDraw / this.maxBowDraw);
+        return Math.max(0f, Math.min(1f, p));
     }
 
 

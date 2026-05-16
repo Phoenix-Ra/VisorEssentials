@@ -4,7 +4,6 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import org.vmstudio.essentials.core.common.VisorEssentials;
 import org.vmstudio.essentials.core.common.network.toserver.BowTensionPayloadToServer;
-import org.vmstudio.essentials.core.server.bow.ServerBowState;
 import org.vmstudio.visor.api.common.addon.VisorAddon;
 import org.vmstudio.visor.api.common.network.VisorChannel;
 import org.vmstudio.visor.api.common.network.VisorNetwork;
@@ -32,7 +31,12 @@ public final class EssentialsChannel {
         INSTANCE = VisorChannel.builder(owner, ID, NETWORK_VERSION)
                 .toServer(
                         (id, buffer)-> BowTensionPayloadToServer.read(buffer),
-                        (payload, sender, response) -> ServerBowState.setTension(sender, payload.tension())
+                        (payload, sender, response) -> {
+                            var essentialsPlayer = VisorEssentials.SERVER.getPlayer(sender.getUUID());
+                            if(essentialsPlayer == null) return;
+
+                            essentialsPlayer.setBowTension(payload.tension());
+                        }
                 )
                 .build();
         VisorNetwork.registerChannel(INSTANCE);

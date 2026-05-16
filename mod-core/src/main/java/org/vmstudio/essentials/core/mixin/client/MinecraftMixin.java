@@ -3,12 +3,15 @@ package org.vmstudio.essentials.core.mixin.client;
 import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.essentials.core.client.gui.overlays.VROverlayContainer;
 import org.vmstudio.essentials.core.client.extensions.AbstractContainerScreenExtension;
+import org.vmstudio.essentials.core.client.tasks.ItemBowTask;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.HasCustomInventoryScreen;
@@ -22,6 +25,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Minecraft.class)
@@ -37,6 +41,9 @@ public class MinecraftMixin {
     @Shadow
     public Screen screen;
 
+    @Shadow
+    public LocalPlayer player;
+
     /**
      * Replaces vanilla container screen with overlay
      *
@@ -44,7 +51,7 @@ public class MinecraftMixin {
      * @param info   s
      */
     @Inject(method = "setScreen", at = @At("HEAD"), cancellable = true)
-    public void visor$UseVRContainerScreen(Screen screen, CallbackInfo info) {
+    public void visorEssentials$UseVRContainerScreen(Screen screen, CallbackInfo info) {
         if(VisorAPI.clientState().stateMode().isNotActive()) return;
 
         // we need containers attached to entity or block,
@@ -63,8 +70,8 @@ public class MinecraftMixin {
         if (!(screen instanceof InventoryScreen)
                 && !(screen instanceof CreativeModeInventoryScreen)
                 && (screen instanceof AbstractContainerScreen<?> containerScreen)) {
-           boolean supportsVR = ((AbstractContainerScreenExtension)containerScreen)
-                   .visorEssentials$supportsVRContainer();
+            boolean supportsVR = ((AbstractContainerScreenExtension)containerScreen)
+                    .visorEssentials$supportsVRContainer();
             if(!supportsVR){
                 return;
             }
@@ -97,7 +104,7 @@ public class MinecraftMixin {
      */
     //@TODO move logic to VR input
     @Inject(method = "handleKeybinds", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isUsingItem()Z", shift = At.Shift.BEFORE, ordinal = 0), cancellable = true)
-    private void visor$mouseAndOverlays(CallbackInfo ci) {
+    private void visorEssentials$mouseAndOverlays(CallbackInfo ci) {
         if(VisorAPI.clientState().stateMode().isNotActive()) return;
 
         if (VisorAPI.client().getGuiManager().getCursorHandler().getFocusedOverlay() != null) {
@@ -164,6 +171,24 @@ public class MinecraftMixin {
             }
 
         }
+    }
+
+
+    @Redirect(method = "handleKeybinds",
+            at = @At(value = "INVOKE",
+                    target = "Lnet/minecraft/client/KeyMapping;isDown()Z",
+                    ordinal = 2))
+    private boolean visorEssentials$keepBowUse(KeyMapping instance) {
+        if (VisorAPI.clientState().stateMode().isNotActive()) {
+            return instance.isDown();
+        }
+        ItemBowTask bow = ItemBowTask.getInstance();
+        if (bow != null
+                && bow.isActive(this.player)
+                && bow.isNotched()) {
+            return true;
+        }
+        return instance.isDown();
     }
 
 }

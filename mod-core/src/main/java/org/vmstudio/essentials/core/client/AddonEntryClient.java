@@ -11,12 +11,13 @@ import org.vmstudio.essentials.core.client.gui.overlays.VROverlayDraggedItem;
 import org.vmstudio.essentials.core.client.gui.overlays.VROverlayInventory;
 import org.vmstudio.essentials.core.common.VisorEssentials;
 import org.vmstudio.essentials.core.common.network.EssentialsChannel;
+import org.vmstudio.essentials.core.server.EssentialsServer;
 import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.visor.api.common.addon.VisorAddon;
 
 import java.util.List;
 
-public class EssentialsAddonClient implements VisorAddon {
+public class AddonEntryClient implements VisorAddon {
     public static final Logger LOGGER = LogManager.getLogger(VisorEssentials.MOD_NAME);
 
     public static boolean ACTIVE;
@@ -35,6 +36,8 @@ public class EssentialsAddonClient implements VisorAddon {
                         new VROverlayInventory(this, VROverlayInventory.ID)
                 ));
 
+        VisorEssentials.SERVER = new EssentialsServer();
+        VisorAPI.eventBus().registerListener(this, VisorEssentials.SERVER);
 
         ACTIVE = true;
     }

@@ -1,5 +1,6 @@
 package org.vmstudio.essentials.core.client.gui.overlays;
 
+import org.vmstudio.essentials.core.client.tasks.ItemBowTask;
 import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.visor.api.client.events.gui.CursorFocusChangedVREvent;
 import org.vmstudio.visor.api.client.gui.overlays.VROverlay;
@@ -119,6 +120,9 @@ public class VROverlayInventory extends VROverlayScreenInScreen<VRInvScreen> imp
                 || minecraft.level == null
                 || minecraft.player == null
                 || minecraft.getEntityRenderDispatcher().camera == null) {
+            return false;
+        }
+        if(ItemBowTask.getInstance().isNotched()){
             return false;
         }
 
