@@ -22,13 +22,15 @@ public class AddonEntryClient implements VisorAddon {
 
     public static boolean ACTIVE;
 
+    public static Minecraft MC;
+    @Override
+    public void onAddonRegister() {
+        MC = Minecraft.getInstance();
+        EssentialsChannel.createChannel(this);
+    }
 
     @Override
     public void onAddonLoad() {
-        VisorEssentials.MC = Minecraft.getInstance();
-
-        EssentialsChannel.createChannel(this);
-
         VisorAPI.addonManager().getRegistries().overlays()
                 .registerComponents(List.of(
                         new VROverlayDraggedItem(this, VROverlayDraggedItem.ID),

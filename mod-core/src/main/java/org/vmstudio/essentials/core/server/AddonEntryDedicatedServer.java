@@ -1,6 +1,5 @@
 package org.vmstudio.essentials.core.server;
 
-import net.minecraft.client.Minecraft;
 import org.vmstudio.essentials.core.common.network.EssentialsChannel;
 import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.visor.api.common.addon.VisorAddon;
@@ -16,11 +15,12 @@ public class AddonEntryDedicatedServer implements VisorAddon {
     public static boolean ACTIVE;
 
     @Override
-    public void onAddonLoad() {
-        VisorEssentials.MC = Minecraft.getInstance();
-
+    public void onAddonRegister() {
         EssentialsChannel.createChannel(this);
+    }
 
+    @Override
+    public void onAddonLoad() {
         VisorEssentials.SERVER = new EssentialsServer();
         VisorAPI.eventBus().registerListener(this, VisorEssentials.SERVER);
 

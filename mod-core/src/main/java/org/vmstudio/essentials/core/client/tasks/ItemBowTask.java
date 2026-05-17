@@ -32,7 +32,7 @@ import org.vmstudio.visor.api.common.addon.VisorAddon;
 import org.vmstudio.visor.api.common.eventbus.listener.VREventHandler;
 import org.vmstudio.visor.api.common.eventbus.listener.VREventListener;
 
-import static org.vmstudio.essentials.core.common.VisorEssentials.MC;
+import static org.vmstudio.essentials.core.client.AddonEntryClient.MC;
 
 
 @RegisterVisorTask

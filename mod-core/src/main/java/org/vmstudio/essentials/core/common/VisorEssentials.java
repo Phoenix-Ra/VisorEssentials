@@ -9,7 +9,6 @@ public abstract class VisorEssentials {
     public static final String MOD_ID = "visor_essentials";
     public static final String MOD_NAME = "VisorEssentials";
 
-    public static Minecraft MC;
 
 
     public static EssentialsServer SERVER;
