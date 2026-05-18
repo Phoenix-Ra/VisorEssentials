@@ -167,7 +167,6 @@ public final class RemoteOverlayRenderHelper {
                 textX,
                 textY,
                 DISPLAY_TEXT_COLOR.asInt(),
-//                toArgb(DISPLAY_TEXT_COLOR),
                 false,
                 poseStack.last().pose(),
                 bufferSource,
