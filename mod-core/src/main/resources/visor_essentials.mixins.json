@@ -23,7 +23,8 @@
     "client.gui.containers.MerchantScreenMixin",
     "client.gui.containers.ShulkerBoxScreenMixin",
     "client.gui.containers.SmithingScreenMixin",
-    "client.gui.containers.StonecutterScreenMixin"
+    "client.gui.containers.StonecutterScreenMixin",
+    "client.renderer.LevelRendererMixin"
   ],
   "server": [
   ],
