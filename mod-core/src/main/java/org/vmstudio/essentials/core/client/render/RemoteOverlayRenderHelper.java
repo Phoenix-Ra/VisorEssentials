@@ -30,10 +30,8 @@ public final class RemoteOverlayRenderHelper {
     private static final String DISPLAY_TEXT = "OVERLAY";
     private static final AtumColorImmutable DISPLAY_COLOR =
             new AtumColorImmutable(40, 45, 60, 140);
-    private static final int DISPLAY_TEXT_COLOR = (Math.round(DISPLAY_COLOR.getAlpha()) << 24)
-            | (92 << 16)
-            | (100 << 8)
-            | 118;
+    private static final AtumColorImmutable DISPLAY_TEXT_COLOR =
+            new AtumColorImmutable(92, 100, 118, DISPLAY_COLOR.getAlpha());
     private static final float DISPLAY_WIDTH = 1.6f;
     private static final float DISPLAY_HEIGHT = 0.9f;
     private static final float DISPLAY_SIZE = 0.8f;
@@ -168,7 +166,8 @@ public final class RemoteOverlayRenderHelper {
                 DISPLAY_TEXT,
                 textX,
                 textY,
-                DISPLAY_TEXT_COLOR,
+                DISPLAY_TEXT_COLOR.asInt(),
+//                toArgb(DISPLAY_TEXT_COLOR),
                 false,
                 poseStack.last().pose(),
                 bufferSource,

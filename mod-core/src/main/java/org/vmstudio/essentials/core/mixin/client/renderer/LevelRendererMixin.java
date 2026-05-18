@@ -19,7 +19,7 @@ public class LevelRendererMixin {
             method = "renderLevel(Lcom/mojang/blaze3d/vertex/PoseStack;FJZLnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/GameRenderer;Lnet/minecraft/client/renderer/LightTexture;Lorg/joml/Matrix4f;)V",
             at = @At("TAIL")
     )
-    private void visorEssentials$renderRemoteGuiForNonVr(PoseStack poseStack,
+    private void visorEssentials$renderRemoteOverlayDisplay(PoseStack poseStack,
                                                          float partialTicks,
                                                          long finishTimeNano,
                                                          boolean renderBlockOutline,
