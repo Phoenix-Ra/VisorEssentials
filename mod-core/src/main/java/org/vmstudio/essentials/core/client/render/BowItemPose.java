@@ -7,7 +7,6 @@ import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
-import org.vmstudio.essentials.core.client.tasks.ItemBowTask;
 import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.visor.api.client.player.VRClientPlayer;
 import org.vmstudio.visor.api.client.render.decoration.annotations.RegisterVRItemPose;
@@ -17,10 +16,10 @@ import org.vmstudio.visor.api.common.addon.VisorAddon;
 import org.vmstudio.visor.api.common.addon.component.ComponentPriority;
 
 @RegisterVRItemPose
-public class ItemBowPose extends VRHandItemPose {
+public class BowItemPose extends VRHandItemPose {
     private static final String ID = "essentials_bow";
 
-    public ItemBowPose(@NotNull VisorAddon owner) { super(owner); }
+    public BowItemPose(@NotNull VisorAddon owner) { super(owner); }
 
     @Override
     public void applyPose(@NotNull PoseStack stack,

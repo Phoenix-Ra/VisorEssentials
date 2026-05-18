@@ -3,7 +3,7 @@ package org.vmstudio.essentials.core.mixin.client;
 import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.essentials.core.client.gui.overlays.VROverlayContainer;
 import org.vmstudio.essentials.core.client.extensions.AbstractContainerScreenExtension;
-import org.vmstudio.essentials.core.client.tasks.ItemBowTask;
+import org.vmstudio.essentials.core.client.tasks.BowItemTask;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
@@ -182,7 +182,7 @@ public class MinecraftMixin {
         if (VisorAPI.clientState().stateMode().isNotActive()) {
             return instance.isDown();
         }
-        ItemBowTask bow = ItemBowTask.getInstance();
+        BowItemTask bow = BowItemTask.getInstance();
         if (bow != null
                 && bow.isActive(this.player)
                 && bow.isNotched()) {

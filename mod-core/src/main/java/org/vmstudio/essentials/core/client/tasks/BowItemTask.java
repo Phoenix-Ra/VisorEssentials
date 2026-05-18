@@ -7,7 +7,6 @@ import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
@@ -36,11 +35,11 @@ import static org.vmstudio.essentials.core.client.AddonEntryClient.MC;
 
 
 @RegisterVisorTask
-public class ItemBowTask extends VisorTask implements VREventListener {
-    private static final String ID = "item_bow";
+public class BowItemTask extends VisorTask implements VREventListener {
+    public static final String ID = "item_bow";
 
     @Getter
-    private static ItemBowTask instance;
+    private static BowItemTask instance;
 
     private static final long SHOOT_DELAY = 1000;
     private static final float START_DRAW_DISTANCE = 0.15f;
@@ -64,7 +63,7 @@ public class ItemBowTask extends VisorTask implements VREventListener {
     private HandType savedActiveHand = HandType.MAIN;
     private boolean activeHandOverridden;
 
-    public ItemBowTask(@NotNull VisorAddon owner) {
+    public BowItemTask(@NotNull VisorAddon owner) {
         super(owner);
         instance = this;
         VisorAPI.eventBus().registerListener(owner, this);
@@ -289,11 +288,6 @@ public class ItemBowTask extends VisorTask implements VREventListener {
             this.activeHandOverridden = false;
             VisorAPI.client().getVRLocalPlayer().setActiveHand(this.savedActiveHand);
         }
-    }
-
-    public boolean isItemModelDisabled(InteractionHand hand) {
-        if (!isNotched()) return false;
-        return MC.player.getItemInHand(hand).getItem() instanceof ArrowItem;
     }
 
 
