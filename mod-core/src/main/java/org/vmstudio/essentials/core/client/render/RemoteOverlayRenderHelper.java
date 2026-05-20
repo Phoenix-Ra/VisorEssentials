@@ -20,9 +20,16 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
+import org.lwjgl.opengl.GL30;
+import org.vmstudio.essentials.core.client.AddonEntryClient;
 import org.vmstudio.visor.api.VisorAPI;
+import org.vmstudio.visor.api.client.events.render.RenderPipelineStageVREvent;
 import org.vmstudio.visor.api.client.player.VRClientPlayer;
 import org.vmstudio.visor.api.client.player.pose.PlayerPoseType;
+import org.vmstudio.visor.api.client.render.RenderPipelineStage;
+import org.vmstudio.visor.api.common.addon.VisorAddon;
+import org.vmstudio.visor.api.common.eventbus.listener.VREventHandler;
+import org.vmstudio.visor.api.common.eventbus.listener.VREventListener;
 import org.vmstudio.visor.api.common.player.VRPose;
 
 // TODO: Add an icon to this display, such as eyes or a Visor logo
@@ -41,6 +48,32 @@ public final class RemoteOverlayRenderHelper {
     private RemoteOverlayRenderHelper() {
     }
 
+    public static class Listener implements VREventListener{
+        public Listener(AddonEntryClient addon){
+            VisorAPI.eventBus().registerListener(addon, this);
+        }
+        @VREventHandler
+        public void onRenderPipelineStage(@NotNull RenderPipelineStageVREvent event) {
+            if (event.getStage() != RenderPipelineStage.AFTER_SOLID) {
+                return;
+            }
+
+            Minecraft minecraft = Minecraft.getInstance();
+            if (minecraft.level == null
+                    || minecraft.player == null
+                    || minecraft.gameRenderer.getMainCamera() == null) {
+                return;
+            }
+
+            PoseStack poseStack = event.getPoseStack();
+            RemoteOverlayRenderHelper.render(
+                    poseStack,
+                    minecraft.gameRenderer.getMainCamera().getPosition(),
+                    event.getPartialTicks()
+            );
+        }
+    }
+
     public static void render(@NotNull PoseStack poseStack,
                               @NotNull Vec3 cameraPos,
                               float partialTicks) {
@@ -53,8 +86,11 @@ public final class RemoteOverlayRenderHelper {
 
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
-        RenderSystem.enableDepthTest();
         RenderSystem.disableCull();
+
+        RenderSystem.depthFunc(GL30.GL_LEQUAL);
+        RenderSystem.depthMask(true);
+        RenderSystem.enableDepthTest();
 
         for (Player player : minecraft.level.players()) {
             if (player == minecraft.player) {
@@ -96,6 +132,10 @@ public final class RemoteOverlayRenderHelper {
             return;
         }
 
+        RenderSystem.depthFunc(GL30.GL_LEQUAL);
+        RenderSystem.depthMask(true);
+        RenderSystem.enableDepthTest();
+        RenderSystem.defaultBlendFunc();
         RenderSystem.enableCull();
         RenderSystem.disableBlend();
     }

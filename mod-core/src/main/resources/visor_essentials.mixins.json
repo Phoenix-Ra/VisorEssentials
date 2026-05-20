@@ -24,7 +24,6 @@
     "client.gui.containers.ShulkerBoxScreenMixin",
     "client.gui.containers.SmithingScreenMixin",
     "client.gui.containers.StonecutterScreenMixin",
-    "client.renderer.LevelRendererMixin"
   ],
   "server": [
   ],
