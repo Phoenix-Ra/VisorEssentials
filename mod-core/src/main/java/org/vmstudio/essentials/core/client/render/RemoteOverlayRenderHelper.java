@@ -38,7 +38,8 @@ public final class RemoteOverlayRenderHelper {
     private static final AtumColorImmutable DISPLAY_COLOR =
             new AtumColorImmutable(40, 45, 60, 140);
     private static final AtumColorImmutable DISPLAY_TEXT_COLOR =
-            new AtumColorImmutable(92, 100, 118, DISPLAY_COLOR.getAlpha());
+            new AtumColorImmutable(92, 100, 118, DISPLAY_COLOR.getAlphaInt());
+
     private static final float DISPLAY_WIDTH = 1.6f;
     private static final float DISPLAY_HEIGHT = 0.9f;
     private static final float DISPLAY_SIZE = 0.8f;
@@ -82,6 +83,9 @@ public final class RemoteOverlayRenderHelper {
             return;
         }
 
+        MultiBufferSource.BufferSource bufferSource =
+                minecraft.renderBuffers().bufferSource();
+
         boolean rendered = false;
 
         RenderSystem.enableBlend();
@@ -89,7 +93,7 @@ public final class RemoteOverlayRenderHelper {
         RenderSystem.disableCull();
 
         RenderSystem.depthFunc(GL30.GL_LEQUAL);
-        RenderSystem.depthMask(true);
+        RenderSystem.depthMask(false);
         RenderSystem.enableDepthTest();
 
         for (Player player : minecraft.level.players()) {
@@ -121,23 +125,21 @@ public final class RemoteOverlayRenderHelper {
                     DISPLAY_HEIGHT,
                     DISPLAY_SIZE
             );
-            renderPlaceholderText(poseStack, minecraft.font);
+            renderPlaceholderText(poseStack, minecraft.font, bufferSource);
             poseStack.popPose();
             rendered = true;
         }
 
         if (rendered) {
-            RenderSystem.enableCull();
-            RenderSystem.disableBlend();
-            return;
+            bufferSource.endBatch();
         }
 
         RenderSystem.depthFunc(GL30.GL_LEQUAL);
         RenderSystem.depthMask(true);
         RenderSystem.enableDepthTest();
         RenderSystem.defaultBlendFunc();
-        RenderSystem.enableCull();
         RenderSystem.disableBlend();
+        RenderSystem.enableCull();
     }
 
     private static @NotNull Vector3f getIndicatorPosition(@NotNull Player player,
@@ -193,8 +195,8 @@ public final class RemoteOverlayRenderHelper {
     }
 
     private static void renderPlaceholderText(@NotNull PoseStack poseStack,
-                                              @NotNull Font font) {
-        MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
+                                              @NotNull Font font,
+                                              @NotNull MultiBufferSource.BufferSource bufferSource) {
         float textWidth = font.width(DISPLAY_TEXT);
         float textX = -textWidth / 2.0F;
         float textY = -font.lineHeight / 2.0F;
@@ -203,20 +205,14 @@ public final class RemoteOverlayRenderHelper {
         poseStack.translate(0.0F, 0.0F, DISPLAY_TEXT_Z_OFFSET);
         poseStack.scale(DISPLAY_TEXT_SCALE, -DISPLAY_TEXT_SCALE, DISPLAY_TEXT_SCALE);
         font.drawInBatch(
-                DISPLAY_TEXT,
-                textX,
-                textY,
-                DISPLAY_TEXT_COLOR.asInt(),
-                false,
-                poseStack.last().pose(),
-                bufferSource,
-                Font.DisplayMode.NORMAL,
-                0,
-                15728880
+                DISPLAY_TEXT, textX, textY,
+                DISPLAY_TEXT_COLOR.asInt(), false,
+                poseStack.last().pose(), bufferSource,
+                Font.DisplayMode.NORMAL, 0, 15728880
         );
-        bufferSource.endBatch();
         poseStack.popPose();
     }
 
     private record RotationAngles(float yaw, float pitch) {}
 }
+
