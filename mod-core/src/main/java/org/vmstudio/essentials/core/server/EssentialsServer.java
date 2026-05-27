@@ -4,8 +4,8 @@ import org.jetbrains.annotations.Nullable;
 import org.vmstudio.visor.api.common.eventbus.listener.VREventHandler;
 import org.vmstudio.visor.api.common.eventbus.listener.VREventListener;
 import org.vmstudio.visor.api.server.events.ServerStoppedVREvent;
-import org.vmstudio.visor.api.server.events.VRPlayerJoinedVREvent;
-import org.vmstudio.visor.api.server.events.VRPlayerLeftVREvent;
+import org.vmstudio.visor.api.server.events.VisorPlayerJoinedVREvent;
+import org.vmstudio.visor.api.server.events.VisorPlayerLeftVREvent;
 
 import java.util.Map;
 import java.util.UUID;
@@ -16,8 +16,9 @@ public class EssentialsServer implements VREventListener {
     private Map<UUID, EssentialsServerPlayer> playerMap = new ConcurrentHashMap<>();
 
     @VREventHandler
-    public void onPlayerJoined(VRPlayerJoinedVREvent event){
-        var vrPlayer = event.getPlayer();
+    public void onPlayerJoined(VisorPlayerJoinedVREvent event){
+        var vrPlayer = event.getPlayer().asVR();
+        if(vrPlayer == null) return;
         playerMap.put(
                 vrPlayer.getMcPlayer().getUUID(),
                 new EssentialsServerPlayer(vrPlayer)
@@ -25,7 +26,7 @@ public class EssentialsServer implements VREventListener {
     }
 
     @VREventHandler
-    public void onPlayerLeft(VRPlayerLeftVREvent event){
+    public void onPlayerLeft(VisorPlayerLeftVREvent event){
         playerMap.remove(event.getPlayer().getMcPlayer().getUUID());
     }
 

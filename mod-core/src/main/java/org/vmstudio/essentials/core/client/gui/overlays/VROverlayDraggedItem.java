@@ -47,7 +47,7 @@ public class VROverlayDraggedItem extends VROverlayScreen
 
     @VREventHandler
     public void onHandRenderState(HandRenderStateVREvent event) {
-        if(!isDraggingItem()){
+        if(!isVisible()){
             return;
         }
         var hand = event.getHandType();
