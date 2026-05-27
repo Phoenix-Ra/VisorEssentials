@@ -37,7 +37,7 @@ public class BowItemPose extends VRHandItemPose {
 
         float scale = 1.4f;
         float translateX = handDir * 0.1f;
-        float translateY = 0.1f;
+        float translateY = 0.18f;
         float translateZ = -0.1f;
         float yaw = -7f;
         float pitch = 0f;

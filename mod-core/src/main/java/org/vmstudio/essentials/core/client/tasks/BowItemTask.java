@@ -41,7 +41,7 @@ public class BowItemTask extends VisorTask implements VREventListener {
     @Getter
     private static BowItemTask instance;
 
-    private static final long SHOOT_DELAY = 1000;
+    private static final long SHOOT_DELAY = 500;
     private static final float START_DRAW_DISTANCE = 0.15f;
     private static final float START_DRAW_ANGLE = 20.0f;
 
