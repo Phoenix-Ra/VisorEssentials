@@ -122,8 +122,8 @@ public class RemoteOverlayRenderHelper implements VREventListener {
         RenderSystem.enableDepthTest();
         RenderSystem.colorMask(true, true, true, true);
         RenderSystem.defaultBlendFunc();
-        RenderSystem.enableCull();
         RenderSystem.disableBlend();
+        RenderSystem.enableCull();
     }
 
     private static void setupOverlayRenderState() {
@@ -274,3 +274,4 @@ public class RemoteOverlayRenderHelper implements VREventListener {
                                      double distanceToCameraSq) {
     }
 }
+

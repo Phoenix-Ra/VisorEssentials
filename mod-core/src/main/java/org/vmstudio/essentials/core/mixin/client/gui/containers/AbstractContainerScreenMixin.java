@@ -68,7 +68,7 @@ public abstract class AbstractContainerScreenMixin <T extends AbstractContainerM
                 .getFocusedOverlay();
         if(focused != null
                 && focused.getId().equals("game_screen")){
-            if(Minecraft.getInstance().screen == this){
+            if(MC.screen == this){
                 return instance.isEmpty();
             }
         }
