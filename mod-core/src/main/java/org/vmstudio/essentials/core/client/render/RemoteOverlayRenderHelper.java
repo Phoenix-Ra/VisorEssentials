@@ -67,6 +67,9 @@ public class RemoteOverlayRenderHelper implements VREventListener {
             if (player == minecraft.player) {
                 continue;
             }
+            if (!player.isAlive() || player.isSleeping() || player.isInvisible()) {
+                continue;
+            }
 
             VRClientPlayer vrPlayer = VisorAPI.client().getVRPlayer(player.getUUID());
             if (vrPlayer == null || !vrPlayer.isOverlayFocused()) {
@@ -82,6 +85,7 @@ public class RemoteOverlayRenderHelper implements VREventListener {
             overlays.add(new OverlayRenderData(
                     position,
                     rotationAngles,
+                    isCameraBehindOverlay(position, rotationAngles, cameraPos),
                     dx * dx + dy * dy + dz * dz
             ));
         }
@@ -109,7 +113,7 @@ public class RemoteOverlayRenderHelper implements VREventListener {
                     DISPLAY_HEIGHT,
                     DISPLAY_SIZE
             );
-            renderPlaceholderText(poseStack, minecraft.font);
+            renderPlaceholderText(poseStack, minecraft.font, overlay.cameraBehind());
             poseStack.popPose();
         }
 
@@ -148,14 +152,18 @@ public class RemoteOverlayRenderHelper implements VREventListener {
     }
 
     private static void renderPlaceholderText(@NotNull PoseStack poseStack,
-                                              @NotNull Font font) {
+                                              @NotNull Font font,
+                                              boolean backSide) {
         MultiBufferSource.BufferSource bufferSource = MultiBufferSource.immediate(new BufferBuilder(256));
         float textWidth = font.width(DISPLAY_TEXT);
         float textX = -textWidth / 2.0F;
         float textY = -font.lineHeight / 2.0F;
 
         poseStack.pushPose();
-        poseStack.translate(0.0F, 0.0F, DISPLAY_TEXT_Z_OFFSET);
+        poseStack.translate(0.0F, 0.0F, backSide ? -DISPLAY_TEXT_Z_OFFSET : DISPLAY_TEXT_Z_OFFSET);
+        if (backSide) {
+            poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+        }
         poseStack.scale(DISPLAY_TEXT_SCALE, -DISPLAY_TEXT_SCALE, DISPLAY_TEXT_SCALE);
         font.drawInBatch(
                 DISPLAY_TEXT,
@@ -211,6 +219,16 @@ public class RemoteOverlayRenderHelper implements VREventListener {
         return new RotationAngles(yaw, pitch);
     }
 
+    private static boolean isCameraBehindOverlay(@NotNull Vector3f position,
+                                                 @NotNull RotationAngles rotationAngles,
+                                                 @NotNull Vec3 cameraPos) {
+        Vec3 normal = Vec3.directionFromRotation(rotationAngles.pitch(), rotationAngles.yaw());
+        double toCameraX = cameraPos.x - position.x;
+        double toCameraY = cameraPos.y - position.y;
+        double toCameraZ = cameraPos.z - position.z;
+        return toCameraX * normal.x + toCameraY * normal.y + toCameraZ * normal.z < 0.0D;
+    }
+
     private static void renderPlaceholderQuad(@NotNull Matrix4f poseMatrix,
                                               @NotNull AtumColorImmutable color,
                                               float displayWidth,
@@ -252,6 +270,7 @@ public class RemoteOverlayRenderHelper implements VREventListener {
 
     private record OverlayRenderData(@NotNull Vector3f position,
                                      @NotNull RotationAngles rotationAngles,
+                                     boolean cameraBehind,
                                      double distanceToCameraSq) {
     }
 }
