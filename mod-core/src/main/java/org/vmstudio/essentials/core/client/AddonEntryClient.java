@@ -41,7 +41,7 @@ public class AddonEntryClient implements VisorAddon {
 
         VisorEssentials.SERVER = new EssentialsServer();
         VisorAPI.eventBus().registerListener(this, VisorEssentials.SERVER);
-        new RemoteOverlayRenderHelper.Listener(this);
+        new RemoteOverlayRenderHelper(this);
 
         ACTIVE = true;
     }
