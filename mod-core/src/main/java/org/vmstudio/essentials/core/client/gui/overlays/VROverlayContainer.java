@@ -16,6 +16,7 @@ import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.vmstudio.essentials.core.common.VisorEssentials;
 import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.visor.api.client.gui.overlays.framework.screen.VROverlayScreenInScreen;
 import org.vmstudio.visor.api.client.player.pose.PlayerPoseType;
@@ -67,6 +68,10 @@ public class VROverlayContainer extends VROverlayScreenInScreen<AbstractContaine
 
     @Override
     protected void onTick() {
+        if (!VisorEssentials.customInventory) {
+            setEnabled(false);
+            return;
+        }
         if (minecraft.screen != null || minecraft.player == null) {
             setEnabled(false);
             return;

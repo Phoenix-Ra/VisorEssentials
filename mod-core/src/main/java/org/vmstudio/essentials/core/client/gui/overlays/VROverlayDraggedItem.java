@@ -8,6 +8,7 @@ import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
+import org.vmstudio.essentials.core.common.VisorEssentials;
 import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.visor.api.client.ClientFeature;
 import org.vmstudio.visor.api.client.events.AllowClientFeatureVREvent;
@@ -70,6 +71,9 @@ public class VROverlayDraggedItem extends VROverlayScreen
 
     @Override
     public boolean updateVisibility() {
+        if(!VisorEssentials.customInventory){
+            return false;
+        }
         if(!isDraggingItem()) {
             return false;
         }

@@ -1,6 +1,7 @@
 package org.vmstudio.essentials.core.client.gui.overlays;
 
 import org.vmstudio.essentials.core.client.tasks.BowItemTask;
+import org.vmstudio.essentials.core.common.VisorEssentials;
 import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.visor.api.client.events.gui.CursorFocusChangedVREvent;
 import org.vmstudio.visor.api.client.gui.overlays.VROverlay;
@@ -50,16 +51,22 @@ public class VROverlayInventory extends VROverlayScreenInScreen<VRInvScreen> imp
     }
 
     @Override
+    protected void onPreTick() {
+        if(isCanBeVisible()) {
+            VROverlayHelper.applyPose(
+                    this,
+                    optionsPose.getPositionAnchor(),
+                    optionsPose.getRotationAnchor(),
+                    optionsPose.getScale(),
+                    optionsPose.isAimedRotation(),
+                    optionsPose.getPositionOffset(),
+                    optionsPose.getRotationOffset()
+            );
+        }
+    }
+
+    @Override
     protected void onTick() {
-        VROverlayHelper.applyPose(
-                this,
-                optionsPose.getPositionAnchor(),
-                optionsPose.getRotationAnchor(),
-                optionsPose.getScale(),
-                optionsPose.isAimedRotation(),
-                optionsPose.getPositionOffset(),
-                optionsPose.getRotationOffset()
-        );
         if(!isVisible()) return;
 
         var overlayContainer =
@@ -108,21 +115,7 @@ public class VROverlayInventory extends VROverlayScreenInScreen<VRInvScreen> imp
 
     @Override
     public boolean updateVisibility() {
-        if (!VisorAPI.client().getVRLocalPlayer()
-                .getRawController(HandType.OFFHAND)
-                .isTracking()) {
-            return false;
-        }
-        if(minecraft.screen != null){
-            return false;
-        }
-        if (minecraft.isPaused()
-                || minecraft.level == null
-                || minecraft.player == null
-                || minecraft.getEntityRenderDispatcher().camera == null) {
-            return false;
-        }
-        if(BowItemTask.getInstance().isNotched()){
+        if(!isCanBeVisible()){
             return false;
         }
 
@@ -153,6 +146,30 @@ public class VROverlayInventory extends VROverlayScreenInScreen<VRInvScreen> imp
 
 
 
+        return true;
+    }
+
+    private boolean isCanBeVisible(){
+        if (!VisorEssentials.customInventory) {
+            return false;
+        }
+        if (!VisorAPI.client().getVRLocalPlayer()
+                .getRawController(HandType.OFFHAND)
+                .isTracking()) {
+            return false;
+        }
+        if(minecraft.screen != null){
+            return false;
+        }
+        if (minecraft.isPaused()
+                || minecraft.level == null
+                || minecraft.player == null
+                || minecraft.getEntityRenderDispatcher().camera == null) {
+            return false;
+        }
+        if(BowItemTask.getInstance().isNotched()){
+            return false;
+        }
         return true;
     }
 
