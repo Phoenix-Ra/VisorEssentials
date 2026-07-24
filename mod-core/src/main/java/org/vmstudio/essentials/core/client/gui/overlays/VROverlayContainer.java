@@ -167,7 +167,7 @@ public class VROverlayContainer extends VROverlayScreenInScreen<AbstractContaine
                     VisorAPI.client().getVRLocalPlayer()
                             .getPoseData(PlayerPoseType.RENDER)
                             .convertPositionFrom(
-                                    PlayerPoseType.RELATIVE,
+                                    PlayerPoseType.ROOM,
                                     facingElement.getPosition()
                             ).y
             );
@@ -235,11 +235,11 @@ public class VROverlayContainer extends VROverlayScreenInScreen<AbstractContaine
         var localPlayer = VisorAPI.client().getVRLocalPlayer();
 
         var roomPos = localPlayer
-                .getPoseData(PlayerPoseType.RELATIVE)
+                .getPoseData(PlayerPoseType.ROOM)
                 .convertPositionFrom(PlayerPoseType.TICK, sourcePos);
 
         var hmdPos = localPlayer
-                .getPoseData(PlayerPoseType.RELATIVE)
+                .getPoseData(PlayerPoseType.ROOM)
                 .getHmd()
                 .getPosition();
         double distance = roomPos.sub(hmdPos).length();
