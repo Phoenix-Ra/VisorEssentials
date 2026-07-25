@@ -6,11 +6,11 @@
   "version_pattern": "{version}+mc{mc}-{artifact}",
 
   "modrinth": {
-    "id_var": "R4fBkFEC",
+    "id": "R4fBkFEC",
     "featured": false
   },
   "curseforge": {
-    "id_var": "1317168"
+    "id": "1317168"
   },
 
   "artifacts": {

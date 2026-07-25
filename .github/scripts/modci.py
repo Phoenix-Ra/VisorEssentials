@@ -183,7 +183,11 @@ def resolve_platform_id(platform, cfg, art, repo_vars):
             if block.get("id_var"):
                 name = block["id_var"]
                 if not repo_vars.get(name):
-                    warn(f"repository variable '{name}' is empty - skipping {platform}")
+                    warn(
+                        f"'{platform}.id_var' points at the repository variable '{name}', which is "
+                        f"not set - define it in the repository settings, or put the project id "
+                        f"straight in the config with \"{platform}\": {{ \"id\": \"...\" }}"
+                    )
                 return str(repo_vars.get(name, ""))
     return str(repo_vars.get(f"{platform.upper()}_ID", ""))
 

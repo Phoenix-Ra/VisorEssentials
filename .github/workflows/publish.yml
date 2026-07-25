@@ -141,12 +141,12 @@ jobs:
           set -euo pipefail
           jq . <<< "$ENTRY"
           ID=$(jq -r '.id' <<< "$ENTRY")
-          if [ "$MODRINTH" = "true" ] && [ -z "$(jq -r '.modrinth_id' <<< "$ENTRY")" ]; then
-            echo "::warning::$ID has no Modrinth project id - set the MODRINTH_ID repository variable"
-          fi
-          if [ "$CURSEFORGE" = "true" ] && [ -z "$(jq -r '.curseforge_id' <<< "$ENTRY")" ]; then
-            echo "::warning::$ID has no CurseForge project id - set the CURSEFORGE_ID repository variable"
-          fi
+          for platform in modrinth curseforge; do
+            enabled=$([ "$platform" = "modrinth" ] && echo "$MODRINTH" || echo "$CURSEFORGE")
+            if [ "$enabled" = "true" ] && [ -z "$(jq -r ".${platform}_id" <<< "$ENTRY")" ]; then
+              echo "::warning::$ID has no $platform project id - set the ${platform}.id in .github/publish.json, or the repository variable its id_var names"
+            fi
+          done
           if [ "$DRY_RUN" = "true" ]; then
             {
               echo "### Dry run: $ID"
