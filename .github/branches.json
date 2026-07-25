@@ -1,0 +1,13 @@
+{
+  "//": "Branches to build for a release. Entries are names or glob patterns, optionally objects with per-branch build settings. See .github/CI.md.",
+
+  "defaults": {
+    "java": "17",
+    "gradle_task": "build"
+  },
+
+  "branches": [
+    "dev",
+    "mc/*"
+  ]
+}

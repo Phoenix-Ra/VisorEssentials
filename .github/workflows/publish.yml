@@ -1,0 +1,192 @@
+name: Publish to Modrinth / CurseForge
+
+# What gets published, under which name, for which game versions and with which
+# dependencies is declared in .github/publish.json - see .github/CI.md.
+#
+# Required repository configuration:
+#   Variables: MODRINTH_ID, CURSEFORGE_ID
+#   Secrets:   MODRINTH_TOKEN, CURSEFORGE_TOKEN
+
+run-name: Publish ${{ inputs.tag }}${{ inputs.dry_run && ' (dry run)' || '' }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to publish
+        type: string
+        required: true
+      modrinth:
+        description: Publish to Modrinth
+        type: boolean
+        default: true
+      curseforge:
+        description: Publish to CurseForge
+        type: boolean
+        default: true
+      version_type:
+        description: Release channel (auto = derived from the mod version)
+        type: choice
+        options:
+          - auto
+          - release
+          - beta
+          - alpha
+        default: auto
+      artifacts:
+        description: 'Only publish these artifacts, comma separated (default: all)'
+        type: string
+        default: ''
+      minecraft:
+        description: 'Only publish these Minecraft versions, comma separated (default: all)'
+        type: string
+        default: ''
+      dry_run:
+        description: Resolve and print the plan without uploading anything
+        type: boolean
+        default: false
+
+concurrency:
+  group: publish-${{ inputs.tag }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    name: Resolve publish plan
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - name: Checkout CI config
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+
+      - name: Read release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.tag }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          gh release view "$TAG" --repo "$REPO" --json assets --jq '[.assets[].name]' > assets.json
+          gh release view "$TAG" --repo "$REPO" --json body --jq '.body // ""' > changelog.md
+
+      - name: Build publish matrix
+        id: plan
+        env:
+          REPO_VARS: ${{ toJSON(vars) }}
+          TAG: ${{ inputs.tag }}
+          VERSION_TYPE: ${{ inputs.version_type }}
+          FILTER_ARTIFACTS: ${{ inputs.artifacts }}
+          FILTER_MINECRAFT: ${{ inputs.minecraft }}
+        run: |
+          python3 .github/scripts/modci.py matrix \
+            --config .github/publish.json \
+            --assets assets.json \
+            --vars "$REPO_VARS" \
+            --tag "$TAG" \
+            --version-type "$VERSION_TYPE" \
+            --artifacts "$FILTER_ARTIFACTS" \
+            --minecraft "$FILTER_MINECRAFT"
+
+      - name: Upload changelog artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: changelog.md
+          retention-days: 1
+
+  publish:
+    name: Publish ${{ matrix.entry.id }}
+    needs: plan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        entry: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - name: Download changelog
+        uses: actions/download-artifact@v4
+        with:
+          name: changelog
+
+      - name: Download jars from the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.tag }}
+          REPO: ${{ github.repository }}
+          FILES: ${{ toJSON(matrix.entry.files) }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          while IFS= read -r file; do
+            gh release download "$TAG" --repo "$REPO" --pattern "$file" --dir dist
+          done < <(jq -r '.[]' <<< "$FILES")
+          ls -l dist
+
+      - name: Report plan
+        env:
+          ENTRY: ${{ toJSON(matrix.entry) }}
+          MODRINTH: ${{ inputs.modrinth }}
+          CURSEFORGE: ${{ inputs.curseforge }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          jq . <<< "$ENTRY"
+          ID=$(jq -r '.id' <<< "$ENTRY")
+          if [ "$MODRINTH" = "true" ] && [ -z "$(jq -r '.modrinth_id' <<< "$ENTRY")" ]; then
+            echo "::warning::$ID has no Modrinth project id - set the MODRINTH_ID repository variable"
+          fi
+          if [ "$CURSEFORGE" = "true" ] && [ -z "$(jq -r '.curseforge_id' <<< "$ENTRY")" ]; then
+            echo "::warning::$ID has no CurseForge project id - set the CURSEFORGE_ID repository variable"
+          fi
+          if [ "$DRY_RUN" = "true" ]; then
+            {
+              echo "### Dry run: $ID"
+              echo '```json'
+              jq . <<< "$ENTRY"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Publish to Modrinth
+        if: ${{ inputs.modrinth && !inputs.dry_run && matrix.entry.modrinth_id != '' }}
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          modrinth-id: ${{ matrix.entry.modrinth_id }}
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          modrinth-featured: ${{ matrix.entry.featured }}
+          files: ${{ matrix.entry.files_input }}
+          name: ${{ matrix.entry.display_name }}
+          version: ${{ matrix.entry.version }}
+          version-type: ${{ matrix.entry.version_type }}
+          loaders: ${{ matrix.entry.loaders }}
+          game-versions: ${{ matrix.entry.game_versions }}
+          dependencies: ${{ matrix.entry.dependencies }}
+          java: ${{ matrix.entry.java }}
+          changelog-file: changelog.md
+          fail-mode: warn
+
+      - name: Publish to CurseForge
+        if: ${{ inputs.curseforge && !inputs.dry_run && matrix.entry.curseforge_id != '' }}
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          curseforge-id: ${{ matrix.entry.curseforge_id }}
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+          files: ${{ matrix.entry.files_input }}
+          name: ${{ matrix.entry.display_name }}
+          version: ${{ matrix.entry.version }}
+          version-type: ${{ matrix.entry.version_type }}
+          loaders: ${{ matrix.entry.loaders }}
+          game-versions: ${{ matrix.entry.game_versions }}
+          dependencies: ${{ matrix.entry.dependencies }}
+          java: ${{ matrix.entry.java }}
+          changelog-file: changelog.md
+          fail-mode: warn

@@ -1,0 +1,98 @@
+name: Release build
+
+# Builds every branch listed in .github/branches.json and attaches the jars
+# declared in .github/publish.json to the release.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to build and attach jars to
+        type: string
+        required: true
+
+concurrency:
+  group: release-${{ github.event.release.tag_name || inputs.tag }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  discover:
+    name: Discover version branches
+    uses: ./.github/workflows/discover.yml
+
+  build:
+    name: Build ${{ matrix.entry.branch }}
+    needs: discover
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        entry: ${{ fromJSON(needs.discover.outputs.branches) }}
+    steps:
+      - name: Checkout ${{ matrix.entry.branch }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.entry.branch }}
+
+      - name: Checkout CI config
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: .ci
+          sparse-checkout: .github
+
+      - name: Set up JDK ${{ matrix.entry.java }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.entry.java }}
+          distribution: ${{ matrix.entry.java_distribution }}
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build
+        env:
+          GRADLE_TASK: ${{ matrix.entry.gradle_task }}
+          GRADLE_ARGS: ${{ matrix.entry.gradle_args }}
+        run: |
+          set -euo pipefail
+          chmod +x ./gradlew
+          # shellcheck disable=SC2086 -- gradle_args is a word-split argument list
+          ./gradlew "$GRADLE_TASK" $GRADLE_ARGS --stacktrace
+
+      - name: Collect release jars
+        id: collect
+        env:
+          BRANCH: ${{ matrix.entry.branch }}
+        run: |
+          python3 .ci/.github/scripts/modci.py collect \
+            --config .ci/.github/publish.json \
+            --root . \
+            --out release-assets \
+            --label "$BRANCH"
+
+      - name: Upload jars to the release
+        if: steps.collect.outputs.found == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" release-assets/*.jar --repo "$REPO" --clobber
+
+      - name: Upload build artifacts (traceability)
+        if: steps.collect.outputs.found == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.entry.safe }}
+          path: release-assets/*.jar
+          retention-days: 14
+          if-no-files-found: error
