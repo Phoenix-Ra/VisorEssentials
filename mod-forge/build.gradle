@@ -27,7 +27,7 @@ configurations {
     developmentForge.extendsFrom common
 }
 
-version = version+"-forge"
+version = version+"+mc"+libs.versions.minecraftVersion.get()+"-forge"
 
 dependencies {
     shadowCommon(project(path: ":mod-core", configuration: "transformProductionForge")) { transitive = false }
