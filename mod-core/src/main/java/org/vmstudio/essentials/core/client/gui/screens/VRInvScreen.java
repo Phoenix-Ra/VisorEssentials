@@ -19,16 +19,24 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
+import org.vmstudio.visor.api.client.gui.GuiTexture;
+import org.vmstudio.visor.api.server.VRServerSettings;
 
 import java.util.List;
 
 
 public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContainerScreenExtension {
-    private ResourceLocation IMAGE_FULL = new ResourceLocation(
-            VisorEssentials.MOD_ID,"textures/gui/inventory.png"
+    private GuiTexture IMAGE_FULL = new GuiTexture(
+            new ResourceLocation(VisorEssentials.MOD_ID,"textures/gui/inventory.png"),
+            0,0,258,156
     );
-    private ResourceLocation IMAGE_SIMPLIFIED = new ResourceLocation(
-            VisorEssentials.MOD_ID,"textures/gui/inventory_simplified.png"
+    private GuiTexture IMAGE_FULL_WITH_OFFHAND = new GuiTexture(
+            new ResourceLocation(VisorEssentials.MOD_ID,"textures/gui/inventory_with_offhand.png"),
+            0,0,278,156
+    );
+    private GuiTexture IMAGE_SIMPLIFIED = new GuiTexture(
+            new ResourceLocation(VisorEssentials.MOD_ID,"textures/gui/inventory_simplified.png"),
+            0,0,258,156
     );
 
 
@@ -41,9 +49,13 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
                        Inventory inventory) {
         super(menu,  inventory, Component.literal(""));
         this.titleLabelX = 97;
-        this.imageWidth = 258;
+        this.imageWidth = hasOffhandSlot() ? 278 : 258;
         this.imageHeight = 156;
         visorEssentials$setVRContainer(true);
+    }
+
+    private static boolean hasOffhandSlot() {
+        return !VRServerSettings.isTwoHandedVR();
     }
     @Override
     public void visorEssentials$fillVRSlots(
@@ -51,6 +63,10 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
     ) {
         fullInventory = !VisorAPI.client().getGuiManager()
                 .getOverlayManager().getOverlay(VROverlayContainer.ID).isEnabled();
+
+        boolean hasOffhand = hasOffhandSlot();
+
+        int xOffset = hasOffhand ? 20 : 0;
 
         slots.clear();
         for(Slot slot : menu.slots){
@@ -62,7 +78,7 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
                 int index = slot.getContainerSlot();
                 int row = index / 2;
                 int col = index % 2;
-                posX = 181 + col * 18;
+                posX = 181 + xOffset + col * 18;
                 posY = 26 + row * 18;
                 slots.add(new ContainerSlot(slot, posX,posY));
             }else if(slot.container instanceof Inventory){
@@ -70,39 +86,39 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
                     //hotbar
                     switch (slot.getContainerSlot()){
                         case 0 -> {
-                            posX = 121;
+                            posX = 121 + xOffset;
                             posY = 38;
                         }
                         case 1 -> {
-                            posX = 121;
+                            posX = 121 + xOffset;
                             posY = 11;
                         }
                         case 2 -> {
-                            posX = 148;
+                            posX = 148 + xOffset;
                             posY = 11;
                         }
                         case 3 -> {
-                            posX = 148;
+                            posX = 148 + xOffset;
                             posY = 38;
                         }
                         case 4 -> {
-                            posX = 148;
+                            posX = 148 + xOffset;
                             posY = 65;
                         }
                         case 5 -> {
-                            posX = 121;
+                            posX = 121 + xOffset;
                             posY = 65;
                         }
                         case 6 -> {
-                            posX = 94;
+                            posX = 94 + xOffset;
                             posY = 65;
                         }
                         case 7 -> {
-                            posX = 94;
+                            posX = 94 + xOffset;
                             posY = 38;
                         }
                         case 8 -> {
-                            posX = 94;
+                            posX = 94 + xOffset;
                             posY = 11;
                         }
                     }
@@ -112,20 +128,26 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
                     int index = slot.getContainerSlot() - 9;
                     int row = index / 9;
                     int col = index % 9;
-                    posX = 49 + col * 18;
+                    posX = 49 + xOffset + col * 18;
                     posY = 96 + row * 18;
                 }else{
                     if(!fullInventory) continue;
-                    // equipment slots
-                    if(slot.getContainerSlot() == 40) continue; //ignore offhand
-                    int index = slot.getContainerSlot() - 36;
-                    posX = 8;
-                    posY = 62 + index * -18;
+                    if(slot.getContainerSlot() == 40){
+                        if(!hasOffhand) continue;
+                        // offhand slot
+                        posX = 79;
+                        posY = 62;
+                    }else {
+                        // equipment slots
+                        int index = slot.getContainerSlot() - 36;
+                        posX = 8;
+                        posY = 62 + index * -18;
+                    }
                 }
                 slots.add(new ContainerSlot(slot,posX,posY));
             }
             else if(fullInventory && slot instanceof ResultSlot){
-                posX = 237;
+                posX = 237 + xOffset;
                 posY = 36;
                 slots.add(new ContainerSlot(slot, posX,posY));
             }
@@ -172,13 +194,11 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
         // [-- Modified
         //guiGraphics.blit(INVENTORY_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
 
-        guiGraphics.blit(fullInventory
-                        ? IMAGE_FULL : IMAGE_SIMPLIFIED,
-                width/2-258/2, height/2-156/2,
-                0, 0.0F, 0.0F,
-                258, 156,
-                258,156
-        );
+        if(fullInventory){
+            (hasOffhandSlot() ? IMAGE_FULL_WITH_OFFHAND : IMAGE_FULL).blit(guiGraphics, i, j);
+        }else {
+            IMAGE_SIMPLIFIED.blit(guiGraphics, i + imageWidth - IMAGE_SIMPLIFIED.getWidth(), j);
+        }
 
         if(fullInventory) {
             renderEntityInInventoryFollowsMouse(guiGraphics, i + 51, j + 75, 30, (float) (i + 51) - this.xMouse, (float) (j + 75 - 50) - this.yMouse, this.minecraft.player);
@@ -316,7 +336,8 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
 
     @Override
     public int visorEssentials$getEdgeX() {
-        return fullInventory ? leftPos : leftPos + 40;
+        return fullInventory ? leftPos
+                : leftPos + imageWidth - IMAGE_SIMPLIFIED.getWidth() + 40;
     }
 
     @Override
@@ -328,10 +349,10 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
     public int visorEssentials$getEdgeWidth() {
         if(hasEffects){
             return fullInventory
-                    ? imageWidth + 40 : imageWidth - 40;
+                    ? imageWidth + 40 : IMAGE_SIMPLIFIED.getWidth() - 40;
         }else {
             return fullInventory
-                    ? imageWidth : imageWidth - 80;
+                    ? imageWidth : IMAGE_SIMPLIFIED.getWidth() - 80;
         }    }
 
     @Override
