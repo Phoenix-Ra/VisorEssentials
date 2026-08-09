@@ -1,5 +1,6 @@
 package org.vmstudio.essentials.core.mixin.client.gui.containers;
 
+import org.vmstudio.essentials.core.client.EssentialsClientSettings;
 import org.vmstudio.essentials.core.common.VisorEssentials;
 import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.visor.api.client.gui.overlays.framework.screen.VROverlayScreenInScreen;
@@ -64,7 +65,7 @@ public abstract class AbstractContainerScreenMixin <T extends AbstractContainerM
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;isEmpty()Z", ordinal = 1)
     )
     private boolean visorEssentials$noDraggingItem(ItemStack instance) {
-        if(!VisorEssentials.customInventory){
+        if(!EssentialsClientSettings.getBetterInventory().isEnabled()){
             return instance.isEmpty();
         }
         if(VisorAPI.clientState().stateMode().isNotActive()){

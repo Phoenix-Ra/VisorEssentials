@@ -1,5 +1,6 @@
 package org.vmstudio.essentials.core.mixin.client;
 
+import org.vmstudio.essentials.core.client.EssentialsClientSettings;
 import org.vmstudio.essentials.core.common.VisorEssentials;
 import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.essentials.core.client.gui.overlays.VROverlayContainer;
@@ -53,7 +54,7 @@ public class MinecraftMixin {
      */
     @Inject(method = "setScreen", at = @At("HEAD"), cancellable = true)
     public void visorEssentials$UseVRContainerScreen(Screen screen, CallbackInfo info) {
-        if(!VisorEssentials.customInventory) return;
+        if(!EssentialsClientSettings.getBetterInventory().isEnabled()) return;
         if(VisorAPI.clientState().stateMode().isNotActive()) return;
         // we need containers attached to entity or block,
         // otherwise display it vanilla way

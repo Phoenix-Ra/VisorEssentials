@@ -2,6 +2,7 @@ package org.vmstudio.essentials.core.client.gui.overlays;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.vmstudio.essentials.core.client.EssentialsClientSettings;
 import org.vmstudio.essentials.core.client.extensions.AbstractContainerScreenExtension;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.BlockPos;
@@ -68,7 +69,7 @@ public class VROverlayContainer extends VROverlayScreenInScreen<AbstractContaine
 
     @Override
     protected void onTick() {
-        if (!VisorEssentials.customInventory) {
+        if (!EssentialsClientSettings.getBetterInventory().isEnabled()) {
             setEnabled(false);
             return;
         }

@@ -13,9 +13,6 @@ public abstract class VisorEssentials {
     public static EssentialsServer SERVER;
 
 
-    /** temporary, preparation for new feature-based structure **/
-    public static boolean customInventory = true;
-
     public static boolean isActive(){
         return AddonEntryClient.ACTIVE
                 || AddonEntryDedicatedServer.ACTIVE;

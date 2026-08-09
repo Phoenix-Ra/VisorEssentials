@@ -1,5 +1,6 @@
 package org.vmstudio.essentials.core.client.gui.overlays;
 
+import org.vmstudio.essentials.core.client.EssentialsClientSettings;
 import org.vmstudio.essentials.core.client.tasks.BowItemTask;
 import org.vmstudio.essentials.core.common.VisorEssentials;
 import org.vmstudio.visor.api.VisorAPI;
@@ -17,6 +18,7 @@ import org.vmstudio.visor.api.common.eventbus.listener.VREventHandler;
 import org.vmstudio.visor.api.common.eventbus.listener.VREventListener;
 import org.vmstudio.visor.api.common.player.VRPose;
 import org.vmstudio.essentials.core.client.gui.screens.VRInvScreen;
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
@@ -34,6 +36,34 @@ public class VROverlayInventory extends VROverlayScreenInScreen<VRInvScreen> imp
         optionsPose = getOption(OverlayOptionsPose.ID, OverlayOptionsPose.class);
         setEnabled(true);
         VisorAPI.eventBus().registerListener(owner,this);
+    }
+
+    @Override
+    public void updateSize() {
+        // [-- Modified from parent: scale is calculated from the standard
+        // gui size, so the taller canvas doesn't change the pixel size
+        guiScaleFactor = VisorAPI.client().getGuiManager().calculateScale(
+                0,
+                VisorAPI.client().getGuiManager().getGuiWidth(),
+                VisorAPI.client().getGuiManager().getGuiHeight()
+        );
+        init(
+                Minecraft.getInstance(),
+                getRequestedWidthScaled(),
+                getRequestedHeightScaled()
+        );
+        // --]
+    }
+
+    @Override
+    public int getRequestedHeight() {
+        // request extra canvas below the centered inventory
+        // so the recipe book fits at full size
+        int scale = Math.max(1, getGuiScaleFactor());
+        return Math.max(
+                super.getRequestedHeight(),
+                VRInvScreen.MIN_CANVAS_HEIGHT * scale
+        );
     }
 
     @VREventHandler
@@ -150,7 +180,7 @@ public class VROverlayInventory extends VROverlayScreenInScreen<VRInvScreen> imp
     }
 
     private boolean isCanBeVisible(){
-        if (!VisorEssentials.customInventory) {
+        if (!EssentialsClientSettings.getBetterInventory().isEnabled()) {
             return false;
         }
         if (!VisorAPI.client().getVRLocalPlayer()

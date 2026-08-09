@@ -9,12 +9,18 @@ import org.vmstudio.essentials.core.client.extensions.AbstractContainerScreenExt
 import org.vmstudio.essentials.core.common.VisorEssentials;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.ImageButton;
+import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
+import net.minecraft.client.gui.screens.recipebook.RecipeUpdateListener;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.*;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
@@ -22,10 +28,11 @@ import org.joml.Quaternionf;
 import org.vmstudio.visor.api.client.gui.GuiTexture;
 import org.vmstudio.visor.api.server.VRServerSettings;
 
+import java.util.Iterator;
 import java.util.List;
 
 
-public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContainerScreenExtension {
+public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContainerScreenExtension, RecipeUpdateListener {
     private GuiTexture IMAGE_FULL = new GuiTexture(
             new ResourceLocation(VisorEssentials.MOD_ID,"textures/gui/inventory.png"),
             0,0,258,156
@@ -40,6 +47,18 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
     );
 
 
+    private static final ResourceLocation RECIPE_BUTTON_LOCATION =
+            new ResourceLocation("textures/gui/recipe_button.png");
+
+    public static final int IMAGE_HEIGHT = 156;
+    public static final int RECIPE_BOOK_GAP = 2;
+    // canvas tall enough to fit the recipe book below the centered inventory
+    public static final int MIN_CANVAS_HEIGHT =
+            IMAGE_HEIGHT + 2 * (RecipeBookComponent.IMAGE_HEIGHT + RECIPE_BOOK_GAP);
+
+    private final RecipeBookComponent recipeBookComponent = new VRRecipeBookComponent();
+    private boolean recipeBookAvailable;
+
     private float xMouse;
     private float yMouse;
 
@@ -50,7 +69,7 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
         super(menu,  inventory, Component.literal(""));
         this.titleLabelX = 97;
         this.imageWidth = hasOffhandSlot() ? 278 : 258;
-        this.imageHeight = 156;
+        this.imageHeight = IMAGE_HEIGHT;
         visorEssentials$setVRContainer(true);
     }
 
@@ -154,31 +173,64 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
         }
     }
     @Override
+    protected void init() {
+        super.init();
+        // [-- Modified: creative-screen switch removed for VR,
+        // recipe book only available while the crafting grid is shown
+        recipeBookAvailable = fullInventory
+                && this.menu instanceof RecipeBookMenu<?>;
+        if (!recipeBookAvailable) {
+            return;
+        }
+        // the component hardcodes the book position relative to the
+        // dimensions given here: x = (w - 147) / 2 - 86, y = (h - 166) / 2.
+        // Feed it virtual dimensions that anchor the book
+        // centered below the inventory
+        int bookLeft = (this.width - RecipeBookComponent.IMAGE_WIDTH) / 2;
+        int bookTop = this.topPos + this.imageHeight + RECIPE_BOOK_GAP;
+        this.recipeBookComponent.init(
+                2 * (bookLeft + 86) + RecipeBookComponent.IMAGE_WIDTH,
+                2 * bookTop + RecipeBookComponent.IMAGE_HEIGHT,
+                this.minecraft,
+                false,
+                (RecipeBookMenu<?>) this.menu
+        );
+        // button placed under the 2x2 crafting grid
+        int xOffset = hasOffhandSlot() ? 20 : 0;
+        this.addRenderableWidget(new ImageButton(this.leftPos + 188 + xOffset, this.topPos + 62, 20, 18, 0, 0, 19, RECIPE_BUTTON_LOCATION, (button) -> {
+            this.recipeBookComponent.toggleVisibility();
+            this.buttonClicked = true;
+        }));
+        // --]
+        this.addWidget(this.recipeBookComponent);
+        this.setInitialFocus(this.recipeBookComponent);
+    }
+
+    @Override
     public void containerTick() {
-        // [-- Modified
-        /*if (this.minecraft.gameMode.hasInfiniteItems()) {
-            this.minecraft.setScreen(new CreativeModeInventoryScreen(this.minecraft.player, this.minecraft.player.connection.enabledFeatures(), (Boolean)this.minecraft.options.operatorItemsTab().get()));
-        } else {
+        // [-- Modified: creative-screen switch removed for VR
+        if (recipeBookAvailable) {
             this.recipeBookComponent.tick();
-        }*/
+        }
         // --]
     }
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        // [-- Modified
-       /* this.renderBackground(guiGraphics);
-        if (this.recipeBookComponent.isVisible() && this.widthTooNarrow) {
-            this.renderBg(guiGraphics, partialTick, mouseX, mouseY);
+        // [-- Modified: no renderBackground inside the overlay,
+        // no narrow-screen mode - the book always fits below,
+        // recipe book calls guarded by availability
+        if (recipeBookAvailable) {
             this.recipeBookComponent.render(guiGraphics, mouseX, mouseY, partialTick);
-        } else {
-            this.recipeBookComponent.render(guiGraphics, mouseX, mouseY, partialTick);
-            super.render(guiGraphics, mouseX, mouseY, partialTick);
-            this.recipeBookComponent.renderGhostRecipe(guiGraphics, this.leftPos, this.topPos, false, partialTick);
-        }*/
+        }
         super.render(guiGraphics, mouseX, mouseY, partialTick);
+        if (recipeBookAvailable) {
+            this.recipeBookComponent.renderGhostRecipe(guiGraphics, this.leftPos, this.topPos, false, partialTick);
+        }
         this.renderTooltip(guiGraphics, mouseX, mouseY);
-        //this.recipeBookComponent.renderTooltip(guiGraphics, this.leftPos, this.topPos, mouseX, mouseY);
+        if (recipeBookAvailable) {
+            this.recipeBookComponent.renderTooltip(guiGraphics, this.leftPos, this.topPos, mouseX, mouseY);
+        }
         // --]
 
         this.xMouse = (float)mouseX;
@@ -252,24 +304,12 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
         Lighting.setupFor3DItems();
     }
 
-    protected boolean isHovering(int x, int y, int width, int height, double mouseX, double mouseY) {
-        // [-- Modified
-        //return (!this.widthTooNarrow || !this.recipeBookComponent.isVisible()) && super.isHovering(x, y, width, height, mouseX, mouseY);
-        return super.isHovering(x, y, width, height, mouseX, mouseY);
-        // --]
-    }
-
-
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        // [-- Modified
-        /*if (this.recipeBookComponent.mouseClicked(mouseX, mouseY, button)) {
+        if (recipeBookAvailable && this.recipeBookComponent.mouseClicked(mouseX, mouseY, button)) {
             this.setFocused(this.recipeBookComponent);
             return true;
-        } else {
-            return this.widthTooNarrow && this.recipeBookComponent.isVisible() ? false : super.mouseClicked(mouseX, mouseY, button);
-        }*/
+        }
         return super.mouseClicked(mouseX, mouseY, button);
-        // --]
     }
 
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
@@ -283,56 +323,36 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
 
     protected boolean hasClickedOutside(double mouseX, double mouseY, int guiLeft, int guiTop, int mouseButton) {
         boolean bl = mouseX < (double)guiLeft || mouseY < (double)guiTop || mouseX >= (double)(guiLeft + this.imageWidth) || mouseY >= (double)(guiTop + this.imageHeight);
-        // [-- Modified
-        //return this.recipeBookComponent.hasClickedOutside(mouseX, mouseY, this.leftPos, this.topPos, this.imageWidth, this.imageHeight, mouseButton) && bl;
-        return bl;
-        // --]
+        if (!recipeBookAvailable) {
+            return bl;
+        }
+        return this.recipeBookComponent.hasClickedOutside(mouseX, mouseY, this.leftPos, this.topPos, this.imageWidth, this.imageHeight, mouseButton) && bl;
     }
 
     protected void slotClicked(Slot slot, int slotId, int mouseButton, ClickType type) {
         super.slotClicked(slot, slotId, mouseButton, type);
-        // [-- Modified
-        //this.recipeBookComponent.slotClicked(slot);
-        // --]
-    }
-
-    // [-- Modified
-/*
-    protected void init() {
-        if (this.minecraft.gameMode.hasInfiniteItems()) {
-            this.minecraft.setScreen(new CreativeModeInventoryScreen(this.minecraft.player, this.minecraft.player.connection.enabledFeatures(), (Boolean)this.minecraft.options.operatorItemsTab().get()));
-        } else {
-            super.init();
-            this.widthTooNarrow = this.width < 379;
-            this.recipeBookComponent.init(this.width, this.height, this.minecraft, this.widthTooNarrow, (RecipeBookMenu)this.menu);
-            this.leftPos = this.recipeBookComponent.updateScreenPosition(this.width, this.imageWidth);
-            this.addRenderableWidget(new ImageButton(this.leftPos + 104, this.height / 2 - 22, 20, 18, 0, 0, 19, RECIPE_BUTTON_LOCATION, (button) -> {
-                this.recipeBookComponent.toggleVisibility();
-                this.leftPos = this.recipeBookComponent.updateScreenPosition(this.width, this.imageWidth);
-                button.setPosition(this.leftPos + 104, this.height / 2 - 22);
-                this.buttonClicked = true;
-            }));
-            this.addWidget(this.recipeBookComponent);
-            this.setInitialFocus(this.recipeBookComponent);
+        if (recipeBookAvailable) {
+            this.recipeBookComponent.slotClicked(slot);
         }
     }
 
+    @Override
     public void recipesUpdated() {
-        this.recipeBookComponent.recipesUpdated();
+        if (recipeBookAvailable) {
+            this.recipeBookComponent.recipesUpdated();
+        }
     }
 
+    @Override
     public RecipeBookComponent getRecipeBookComponent() {
         return this.recipeBookComponent;
     }
 
-    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        guiGraphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 4210752, false);
+
+
+    private boolean isRecipeBookOpen() {
+        return recipeBookAvailable && this.recipeBookComponent.isVisible();
     }
-*/
-
-    // --]
-
-
 
     @Override
     public int visorEssentials$getEdgeX() {
@@ -357,7 +377,47 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
 
     @Override
     public int visorEssentials$getEdgeHeight() {
+        // extend the interactable area over the book below
+        if (isRecipeBookOpen()) {
+            return imageHeight + RECIPE_BOOK_GAP + RecipeBookComponent.IMAGE_HEIGHT;
+        }
         return imageHeight;
+    }
+
+    /**
+     * Vanilla component records the ghost recipe ("hint") positions
+     * from raw Slot#x/y, which don't match the VR slot layout - remap them
+     */
+    private class VRRecipeBookComponent extends RecipeBookComponent {
+
+        @Override
+        public void setupGhostRecipe(Recipe<?> recipe, List<Slot> slots) {
+            if (!recipeBookAvailable) {
+                return;
+            }
+            ItemStack resultStack = recipe.getResultItem(this.minecraft.level.registryAccess());
+            this.ghostRecipe.setRecipe(recipe);
+            addGhostIngredient(Ingredient.of(resultStack), slots.get(0));
+            this.placeRecipe(this.menu.getGridWidth(), this.menu.getGridHeight(), this.menu.getResultSlotIndex(), recipe, recipe.getIngredients().iterator(), 0);
+        }
+
+        @Override
+        public void addItemToSlot(Iterator<Ingredient> ingredients, int slotIndex, int maxAmount, int gridX, int gridY) {
+            Ingredient ingredient = ingredients.next();
+            if (!ingredient.isEmpty()) {
+                addGhostIngredient(ingredient, this.menu.slots.get(slotIndex));
+            }
+        }
+
+        private void addGhostIngredient(Ingredient ingredient, Slot slot) {
+            for (ContainerSlot vrSlot : visorEssentials$getVRSlots()) {
+                if (vrSlot.parent() == slot) {
+                    this.ghostRecipe.addIngredient(ingredient, vrSlot.vrPosX(), vrSlot.vrPosY());
+                    return;
+                }
+            }
+            this.ghostRecipe.addIngredient(ingredient, slot.x, slot.y);
+        }
     }
 
 
