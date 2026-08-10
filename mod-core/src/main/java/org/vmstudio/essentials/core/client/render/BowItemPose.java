@@ -7,6 +7,7 @@ import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
+import org.vmstudio.essentials.core.client.EssentialsClientSettings;
 import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.visor.api.client.player.VRClientPlayer;
 import org.vmstudio.visor.api.client.render.decoration.annotations.RegisterVRItemPose;
@@ -59,7 +60,8 @@ public class BowItemPose extends VRHandItemPose {
     public boolean canApplyPose(@NotNull AbstractClientPlayer player,
                                 @NotNull HandType hand,
                                 @NotNull ItemStack itemStack) {
-        return itemStack.getItem() instanceof BowItem;
+        return EssentialsClientSettings.isBetterBowActive()
+                && itemStack.getItem() instanceof BowItem;
     }
 
     @Override

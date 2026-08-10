@@ -1,0 +1,11 @@
+{
+  "visor_essentials.gui.title": "VisorEssentials",
+  "visor_essentials.gui.blocked_by_server": "Disabled by the server",
+
+  "visor_essentials.feature.better_inventory.name": "Better Inventory",
+  "visor_essentials.feature.better_inventory.desc": "VR-friendly inventory and container screens with item dragging between overlays",
+  "visor_essentials.feature.better_bow.name": "Better Bow",
+  "visor_essentials.feature.better_bow.desc": "Roomscale bow: draw with your hands, arrow power depends on the real draw distance",
+  "visor_essentials.feature.overlay_focus_visualizer.name": "Overlay Focus Visualizer",
+  "visor_essentials.feature.overlay_focus_visualizer.desc": "Shows a floating indicator above players who are focused on a VR overlay"
+}

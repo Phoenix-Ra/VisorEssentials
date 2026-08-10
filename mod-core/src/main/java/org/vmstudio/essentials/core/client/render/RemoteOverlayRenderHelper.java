@@ -17,6 +17,7 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.lwjgl.opengl.GL30;
+import org.vmstudio.essentials.core.client.EssentialsClientSettings;
 import org.vmstudio.visor.api.ModLoader;
 import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.visor.api.client.events.render.RenderPipelineStageVREvent;
@@ -56,6 +57,9 @@ public class RemoteOverlayRenderHelper implements VREventListener {
     private static void render(@NotNull PoseStack poseStack,
                                @NotNull Vec3 cameraPos,
                                float partialTicks) {
+        if (!EssentialsClientSettings.getOverlayFocusVisualizer().isEnabled()) {
+            return;
+        }
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level == null || minecraft.player == null) {
             return;

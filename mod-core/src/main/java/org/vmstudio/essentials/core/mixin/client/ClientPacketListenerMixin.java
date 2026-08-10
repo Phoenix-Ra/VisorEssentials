@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.client.gui.screens.recipebook.RecipeUpdateListener;
 import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.network.protocol.game.ClientboundLoginPacket;
 import net.minecraft.network.protocol.game.ClientboundPlaceGhostRecipePacket;
 import net.minecraft.network.protocol.game.ClientboundRecipePacket;
 import net.minecraft.network.protocol.game.ClientboundUpdateRecipesPacket;
@@ -17,17 +18,26 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.vmstudio.essentials.core.client.EssentialsClientSettings;
 import org.vmstudio.essentials.core.client.gui.overlays.VROverlayContainer;
 import org.vmstudio.essentials.core.client.gui.overlays.VROverlayInventory;
+import org.vmstudio.essentials.core.server.EssentialsServerSettings;
 import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.visor.api.client.gui.overlays.framework.screen.VROverlayScreenInScreen;
 
 @Mixin(ClientPacketListener.class)
 public class ClientPacketListenerMixin {
 
-    /**
-     * Vanilla dispatches recipe updates only to Minecraft#screen.
-     * VR overlay screens are never the current screen,
-     * so forward the updates to them manually.
-     */
+    @Inject(method = "handleLogin", at = @At("TAIL"))
+    private void visorEssentials$onJoinedServer(ClientboundLoginPacket packet, CallbackInfo ci) {
+        if (!Minecraft.getInstance().isLocalServer()) {
+            EssentialsServerSettings.joinedDedicatedServer();
+        }
+    }
+
+    @Inject(method = "close", at = @At("TAIL"))
+    private void visorEssentials$onDisconnected(CallbackInfo ci) {
+        EssentialsServerSettings.resetToDefaults();
+    }
+
+
     @Inject(method = "handleAddOrRemoveRecipes", at = @At("TAIL"))
     private void visorEssentials$forwardRecipesUpdated(ClientboundRecipePacket packet, CallbackInfo ci) {
         visorEssentials$notifyOverlayScreens();

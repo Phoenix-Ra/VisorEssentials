@@ -1,6 +1,7 @@
 package org.vmstudio.essentials.core.client;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -9,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import org.vmstudio.essentials.core.client.gui.overlays.VROverlayContainer;
 import org.vmstudio.essentials.core.client.gui.overlays.VROverlayDraggedItem;
 import org.vmstudio.essentials.core.client.gui.overlays.VROverlayInventory;
+import org.vmstudio.essentials.core.client.gui.screens.EssentialsSettingsScreen;
 import org.vmstudio.essentials.core.client.render.RemoteOverlayRenderHelper;
 import org.vmstudio.essentials.core.common.VisorEssentials;
 import org.vmstudio.essentials.core.common.network.EssentialsChannel;
@@ -32,6 +34,11 @@ public class AddonEntryClient implements VisorAddon {
 
     @Override
     public void onAddonLoad() {
+        VisorEssentials.initConfigManager(
+                VisorAPI.client().getConfigManager().getLogger()
+        );
+        EssentialsClientSettings.load();
+
         VisorAPI.addonManager().getRegistries().overlays()
                 .registerComponents(List.of(
                         new VROverlayDraggedItem(this, VROverlayDraggedItem.ID),
@@ -44,6 +51,11 @@ public class AddonEntryClient implements VisorAddon {
         new RemoteOverlayRenderHelper(this);
 
         ACTIVE = true;
+    }
+
+    @Override
+    public @Nullable Screen createAddonSettingsScreen(@NotNull Screen backScreen) {
+        return new EssentialsSettingsScreen(backScreen);
     }
 
     @Override

@@ -12,6 +12,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
+import org.vmstudio.essentials.core.client.EssentialsClientSettings;
 import org.vmstudio.essentials.core.client.extensions.LocalPlayerExtension;
 import org.vmstudio.essentials.core.common.network.EssentialsChannel;
 import org.vmstudio.essentials.core.common.network.toserver.BowTensionPayloadToServer;
@@ -256,6 +257,9 @@ public class BowItemTask extends VisorTask implements VREventListener {
 
     @Override
     public boolean isActive(LocalPlayer player) {
+        if(!EssentialsClientSettings.isBetterBowActive()){
+            return false;
+        }
         if(MC.screen != null){
             return false;
         }
