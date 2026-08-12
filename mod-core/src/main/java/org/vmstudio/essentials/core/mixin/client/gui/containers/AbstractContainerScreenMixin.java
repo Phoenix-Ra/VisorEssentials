@@ -106,6 +106,20 @@ public abstract class AbstractContainerScreenMixin <T extends AbstractContainerM
             );
         }
     }
+
+    @Unique
+    private ContainerSlot visorEssentials$vrSlot(Slot slot){
+        if(!visorEssentials$hasVRSlots()){
+            return null;
+        }
+        return visorEssentials$vrSlotsMap.get(slot);
+    }
+    @Unique
+    private boolean visorEssentials$hasVRSlots(){
+        return visorEssentials$isVrContainer
+                && visorEssentials$vrSlots != null
+                && visorEssentials$vrSlotsMap != null;
+    }
     @Inject(method = "init", at = @At("HEAD"))
     private void onInit(CallbackInfo ci){
         if(visorEssentials$isVrContainer) {
@@ -125,7 +139,7 @@ public abstract class AbstractContainerScreenMixin <T extends AbstractContainerM
             at = @At(value = "INVOKE", target = "Lnet/minecraft/core/NonNullList;size()I")
     )
     private int visorEssentials$redirectSlots1(NonNullList<?> instance) {
-        if(visorEssentials$isVrContainer){
+        if(visorEssentials$hasVRSlots()){
             return visorEssentials$vrSlots.size();
         }
         return instance.size();
@@ -135,7 +149,7 @@ public abstract class AbstractContainerScreenMixin <T extends AbstractContainerM
             at = @At(value = "INVOKE", target = "Lnet/minecraft/core/NonNullList;get(I)Ljava/lang/Object;")
     )
     private Object visorEssentials$redirectSlots2(NonNullList<?> instance, int i) {
-        if(visorEssentials$isVrContainer){
+        if(visorEssentials$hasVRSlots()){
             return visorEssentials$vrSlots.get(i).parent();
         }
         return instance.get(i);
@@ -148,7 +162,7 @@ public abstract class AbstractContainerScreenMixin <T extends AbstractContainerM
             at = @At(value = "INVOKE", target = "Lnet/minecraft/core/NonNullList;size()I")
     )
     private int visorEssentials$redirectSlots3(NonNullList<Slot> instance) {
-        if(visorEssentials$isVrContainer){
+        if(visorEssentials$hasVRSlots()){
             return visorEssentials$vrSlots.size();
         }
         return instance.size();
@@ -158,7 +172,7 @@ public abstract class AbstractContainerScreenMixin <T extends AbstractContainerM
             at = @At(value = "INVOKE", target = "Lnet/minecraft/core/NonNullList;get(I)Ljava/lang/Object;")
     )
     private Object visorEssentials$redirectSlots4(NonNullList<Slot> instance, int i) {
-        if(visorEssentials$isVrContainer){
+        if(visorEssentials$hasVRSlots()){
             return visorEssentials$vrSlots.get(i).parent();
         }
         return instance.get(i);
@@ -170,7 +184,7 @@ public abstract class AbstractContainerScreenMixin <T extends AbstractContainerM
             at = @At(value = "INVOKE", target = "Lnet/minecraft/core/NonNullList;iterator()Ljava/util/Iterator;")
     )
     private Iterator<Slot> visorEssentials$redirectSlots5(NonNullList<Slot> instance) {
-        if(visorEssentials$isVrContainer){
+        if(visorEssentials$hasVRSlots()){
             return visorEssentials$vrSlotsMap.keySet().iterator();
         }
         return instance.iterator();
@@ -181,55 +195,37 @@ public abstract class AbstractContainerScreenMixin <T extends AbstractContainerM
 
     @Redirect(method = "render", at = @At(value = "FIELD", target = "Lnet/minecraft/world/inventory/Slot;x:I"))
     private int visorEssentials$redirectSlotPos1(Slot instance){
-        if(visorEssentials$isVrContainer){
-            return visorEssentials$vrSlotsMap
-                    .get(instance).vrPosX();
-        }
-        return instance.x;
+        var vrSlot = visorEssentials$vrSlot(instance);
+        return vrSlot != null ? vrSlot.vrPosX() : instance.x;
     }
     @Redirect(method = "render", at = @At(value = "FIELD", target = "Lnet/minecraft/world/inventory/Slot;y:I"))
     private int visorEssentials$redirectSlotPos2(Slot instance){
-        if(visorEssentials$isVrContainer){
-            return visorEssentials$vrSlotsMap
-                    .get(instance).vrPosY();
-        }
-        return instance.y;
+        var vrSlot = visorEssentials$vrSlot(instance);
+        return vrSlot != null ? vrSlot.vrPosY() : instance.y;
     }
 
 
     @Redirect(method = "renderSlot", at = @At(value = "FIELD", target = "Lnet/minecraft/world/inventory/Slot;x:I"))
     private int visorEssentials$redirectSlotPos3(Slot instance){
-        if(visorEssentials$isVrContainer){
-            return visorEssentials$vrSlotsMap
-                    .get(instance).vrPosX();
-        }
-        return instance.x;
+        var vrSlot = visorEssentials$vrSlot(instance);
+        return vrSlot != null ? vrSlot.vrPosX() : instance.x;
     }
     @Redirect(method = "renderSlot", at = @At(value = "FIELD", target = "Lnet/minecraft/world/inventory/Slot;y:I"))
     private int visorEssentials$redirectSlotPos4(Slot instance){
-        if(visorEssentials$isVrContainer){
-            return visorEssentials$vrSlotsMap
-                    .get(instance).vrPosY();
-        }
-        return instance.y;
+        var vrSlot = visorEssentials$vrSlot(instance);
+        return vrSlot != null ? vrSlot.vrPosY() : instance.y;
     }
 
 
     @Redirect(method = "isHovering(Lnet/minecraft/world/inventory/Slot;DD)Z", at = @At(value = "FIELD", target = "Lnet/minecraft/world/inventory/Slot;x:I"))
     private int visorEssentials$redirectSlotPos5(Slot instance){
-        if(visorEssentials$isVrContainer){
-            return visorEssentials$vrSlotsMap
-                    .get(instance).vrPosX();
-        }
-        return instance.x;
+        var vrSlot = visorEssentials$vrSlot(instance);
+        return vrSlot != null ? vrSlot.vrPosX() : instance.x;
     }
     @Redirect(method = "isHovering(Lnet/minecraft/world/inventory/Slot;DD)Z", at = @At(value = "FIELD", target = "Lnet/minecraft/world/inventory/Slot;y:I"))
     private int visorEssentials$redirectSlotPos6(Slot instance){
-        if(visorEssentials$isVrContainer){
-            return visorEssentials$vrSlotsMap
-                    .get(instance).vrPosY();
-        }
-        return instance.y;
+        var vrSlot = visorEssentials$vrSlot(instance);
+        return vrSlot != null ? vrSlot.vrPosY() : instance.y;
     }
 
 
@@ -261,7 +257,7 @@ public abstract class AbstractContainerScreenMixin <T extends AbstractContainerM
 
     @Override
     public @NotNull List<ContainerSlot> visorEssentials$getVRSlots() {
-        return visorEssentials$vrSlots;
+        return visorEssentials$vrSlots == null ? List.of() : visorEssentials$vrSlots;
     }
 
 
