@@ -43,8 +43,7 @@ public class BowItemTask extends VisorTask implements VREventListener {
     private static BowItemTask instance;
 
     private static final long SHOOT_DELAY = 500;
-    private static final float START_DRAW_DISTANCE = 0.15f;
-    private static final float START_DRAW_ANGLE = 20.0f;
+    private static final float START_DRAW_DISTANCE = 0.2f;
 
     private Vec3 aim;
     private double currentBowDraw;
@@ -59,6 +58,7 @@ public class BowItemTask extends VisorTask implements VREventListener {
     private int lastHapticStep;
     private long lastShoot;
 
+    @Getter
     private HandType bowHolder = HandType.MAIN;
 
     private HandType savedActiveHand = HandType.MAIN;
@@ -138,18 +138,6 @@ public class BowItemTask extends VisorTask implements VREventListener {
 
         this.aim = handArrowPos.subtract(handBowPos).normalize();
 
-        final Vec3 arrowHandDir = new Vec3(
-                renderPose.getHand(arrowHolder)
-                        .getCustomVector(new Vector3f(0.0f, 0.0f, -1.0f))
-        );
-        final Vec3 bowHandDir = new Vec3(
-                renderPose.getGripHand(bowHolder)
-                        .getCustomVector(new Vector3f(0.0f, -1.0f, 0.0f))
-        );
-        final double handsAngle = Math.toDegrees(
-                Math.acos(bowHandDir.dot(arrowHandDir))
-        );
-
         final VRActionButton attackMain = inputManager.getActionLeftMouse(HandType.MAIN);
         final VRActionButton attackOff = inputManager.getActionLeftMouse(HandType.OFFHAND);
         this.pressed = (attackMain != null && attackMain.isPressed())
@@ -168,8 +156,7 @@ public class BowItemTask extends VisorTask implements VREventListener {
 
         // Conditions for being able to draw the bow
         if (!arrowItem.isEmpty()
-                && distanceToBowCenter <= maxDistanceToBowCenter
-                && handsAngle <= START_DRAW_ANGLE) {
+                && distanceToBowCenter <= maxDistanceToBowCenter) {
             this.canDrawBow = true;
             this.holdBowTime = Util.getMillis();
             if (!this.drawingBow) {
