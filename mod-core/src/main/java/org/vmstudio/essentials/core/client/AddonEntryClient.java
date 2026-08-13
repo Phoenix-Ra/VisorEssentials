@@ -11,6 +11,7 @@ import org.vmstudio.essentials.core.client.gui.overlays.VROverlayContainer;
 import org.vmstudio.essentials.core.client.gui.overlays.VROverlayDraggedItem;
 import org.vmstudio.essentials.core.client.gui.overlays.VROverlayInventory;
 import org.vmstudio.essentials.core.client.gui.screens.EssentialsSettingsScreen;
+import org.vmstudio.essentials.core.client.render.BowAimCrosshairRenderer;
 import org.vmstudio.essentials.core.client.render.RemoteOverlayRenderHelper;
 import org.vmstudio.essentials.core.common.VisorEssentials;
 import org.vmstudio.essentials.core.common.network.EssentialsChannel;
@@ -49,6 +50,7 @@ public class AddonEntryClient implements VisorAddon {
         VisorEssentials.SERVER = new EssentialsServer();
         VisorAPI.eventBus().registerListener(this, VisorEssentials.SERVER);
         new RemoteOverlayRenderHelper(this);
+        new BowAimCrosshairRenderer(this);
 
         ACTIVE = true;
     }
