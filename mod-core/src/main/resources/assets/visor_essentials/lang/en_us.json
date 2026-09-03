@@ -1,6 +1,7 @@
 {
   "visor_essentials.gui.title": "VisorEssentials",
   "visor_essentials.gui.blocked_by_server": "Disabled by the server",
+  "visor_essentials.gui.open_creative": "Creative Inventory",
 
   "visor_essentials.feature.better_inventory.name": "Better Inventory",
   "visor_essentials.feature.better_inventory.desc": "VR-friendly inventory and container screens with item dragging between overlays",

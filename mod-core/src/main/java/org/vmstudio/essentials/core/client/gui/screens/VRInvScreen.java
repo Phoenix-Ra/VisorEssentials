@@ -9,7 +9,9 @@ import org.vmstudio.essentials.core.client.extensions.AbstractContainerScreenExt
 import org.vmstudio.essentials.core.common.VisorEssentials;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageButton;
+import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
 import net.minecraft.client.gui.screens.recipebook.RecipeUpdateListener;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
@@ -52,12 +54,17 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
 
     public static final int IMAGE_HEIGHT = 156;
     public static final int RECIPE_BOOK_GAP = 2;
+    public static final int CREATIVE_BUTTON_WIDTH = 120;
+    public static final int CREATIVE_BUTTON_HEIGHT = 20;
+    public static final int CREATIVE_BUTTON_GAP = 4;
     // canvas tall enough to fit the recipe book below the centered inventory
     public static final int MIN_CANVAS_HEIGHT =
             IMAGE_HEIGHT + 2 * (RecipeBookComponent.IMAGE_HEIGHT + RECIPE_BOOK_GAP);
 
     private final RecipeBookComponent recipeBookComponent = new VRRecipeBookComponent();
     private boolean recipeBookAvailable;
+
+    private Button creativeButton;
 
     private float xMouse;
     private float yMouse;
@@ -175,17 +182,29 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
     @Override
     protected void init() {
         super.init();
-        // [-- Modified: creative-screen switch removed for VR,
-        // recipe book only available while the crafting grid is shown
+        // [-- Modified: vanilla swaps the whole screen for the creative one,
+        // here it is an opt-in button placed above the inventory
+        this.creativeButton = null;
+        if (fullInventory) {
+            this.creativeButton = this.addRenderableWidget(Button.builder(
+                            Component.translatable(VisorEssentials.MOD_ID + ".gui.open_creative"),
+                            button -> openCreativeInventory())
+                    .bounds(
+                            this.leftPos + (this.imageWidth - CREATIVE_BUTTON_WIDTH) / 2,
+                            this.topPos - CREATIVE_BUTTON_GAP - CREATIVE_BUTTON_HEIGHT,
+                            CREATIVE_BUTTON_WIDTH,
+                            CREATIVE_BUTTON_HEIGHT
+                    )
+                    .build());
+            this.creativeButton.visible = isCreativeMode();
+        }
+        // --]
         recipeBookAvailable = fullInventory
                 && this.menu instanceof RecipeBookMenu<?>;
         if (!recipeBookAvailable) {
             return;
         }
-        // the component hardcodes the book position relative to the
-        // dimensions given here: x = (w - 147) / 2 - 86, y = (h - 166) / 2.
-        // Feed it virtual dimensions that anchor the book
-        // centered below the inventory
+
         int bookLeft = (this.width - RecipeBookComponent.IMAGE_WIDTH) / 2;
         int bookTop = this.topPos + this.imageHeight + RECIPE_BOOK_GAP;
         this.recipeBookComponent.init(
@@ -195,24 +214,44 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
                 false,
                 (RecipeBookMenu<?>) this.menu
         );
-        // button placed under the 2x2 crafting grid
         int xOffset = hasOffhandSlot() ? 20 : 0;
         this.addRenderableWidget(new ImageButton(this.leftPos + 188 + xOffset, this.topPos + 62, 20, 18, 0, 0, 19, RECIPE_BUTTON_LOCATION, (button) -> {
             this.recipeBookComponent.toggleVisibility();
             this.buttonClicked = true;
         }));
-        // --]
         this.addWidget(this.recipeBookComponent);
         this.setInitialFocus(this.recipeBookComponent);
     }
 
     @Override
     public void containerTick() {
-        // [-- Modified: creative-screen switch removed for VR
+        // [-- Modified: creative-screen switch replaced with a button,
+        // its visibility follows the game mode
+        if (creativeButton != null) {
+            creativeButton.visible = isCreativeMode();
+        }
+        // --]
         if (recipeBookAvailable) {
             this.recipeBookComponent.tick();
         }
-        // --]
+    }
+
+    private boolean isCreativeMode() {
+        return this.minecraft != null
+                && this.minecraft.gameMode != null
+                && this.minecraft.gameMode.hasInfiniteItems();
+    }
+
+    private boolean isCreativeButtonVisible() {
+        return creativeButton != null && creativeButton.visible;
+    }
+
+    private void openCreativeInventory() {
+        this.minecraft.setScreen(new CreativeModeInventoryScreen(
+                this.minecraft.player,
+                this.minecraft.player.connection.enabledFeatures(),
+                this.minecraft.options.operatorItemsTab().get()
+        ));
     }
 
     @Override
@@ -362,6 +401,10 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
 
     @Override
     public int visorEssentials$getEdgeY() {
+        // extend the interactable area over the button above
+        if (isCreativeButtonVisible()) {
+            return topPos - CREATIVE_BUTTON_GAP - CREATIVE_BUTTON_HEIGHT;
+        }
         return topPos;
     }
 
@@ -377,17 +420,18 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
 
     @Override
     public int visorEssentials$getEdgeHeight() {
+        int height = imageHeight;
         // extend the interactable area over the book below
         if (isRecipeBookOpen()) {
-            return imageHeight + RECIPE_BOOK_GAP + RecipeBookComponent.IMAGE_HEIGHT;
+            height += RECIPE_BOOK_GAP + RecipeBookComponent.IMAGE_HEIGHT;
         }
-        return imageHeight;
+        if (isCreativeButtonVisible()) {
+            height += CREATIVE_BUTTON_GAP + CREATIVE_BUTTON_HEIGHT;
+        }
+        return height;
     }
 
-    /**
-     * Vanilla component records the ghost recipe ("hint") positions
-     * from raw Slot#x/y, which don't match the VR slot layout - remap them
-     */
+
     private class VRRecipeBookComponent extends RecipeBookComponent {
 
         @Override
