@@ -30,6 +30,8 @@
   ],
   "minVersion": "0.8.4",
   "mixins": [
-    "common.bow.BowItemMixin"
+    "common.bow.AbstractArrowMixin",
+    "common.bow.LivingEntityMixin",
+    "common.bow.ProjectileMixin"
   ]
 }
