@@ -1,21 +1,25 @@
 package org.vmstudio.essentials.core.common.network;
 
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.BowItem;
 import org.jetbrains.annotations.NotNull;
 import org.vmstudio.essentials.core.common.VisorEssentials;
 import org.vmstudio.essentials.core.common.network.toclient.SettingsPayloadToClient;
+import org.vmstudio.essentials.core.common.network.toserver.BowDrawCancelPayloadToServer;
 import org.vmstudio.essentials.core.common.network.toserver.BowTensionPayloadToServer;
 import org.vmstudio.essentials.core.server.EssentialsServerConfig;
 import org.vmstudio.essentials.core.server.EssentialsServerSettings;
 import org.vmstudio.visor.api.common.addon.VisorAddon;
 import org.vmstudio.visor.api.common.network.VisorChannel;
 import org.vmstudio.visor.api.common.network.VisorNetwork;
+import org.vmstudio.visor.api.common.network.VisorPayloadToServer;
 
 public final class EssentialsChannel {
 
     public static final ResourceLocation ID =
             new ResourceLocation(VisorEssentials.MOD_ID, "channel");
-    public static final int NETWORK_VERSION = 1;
+    public static final int NETWORK_VERSION = 2; // 2: bow draw cancel payload
 
     private static VisorChannel INSTANCE;
 
@@ -33,14 +37,21 @@ public final class EssentialsChannel {
         if (INSTANCE != null) return;
         INSTANCE = VisorChannel.builder(owner, ID, NETWORK_VERSION)
                 .toServer(
-                        (id, buffer)-> BowTensionPayloadToServer.read(buffer),
+                        EssentialsChannel::readToServer,
                         (payload, sender, response) -> {
                             if(!EssentialsServerSettings.isBetterBow()) return;
 
-                            var essentialsPlayer = VisorEssentials.SERVER.getPlayer(sender.getUUID());
-                            if(essentialsPlayer == null) return;
+                            if (payload instanceof BowTensionPayloadToServer tension) {
+                                var essentialsPlayer = VisorEssentials.SERVER.getPlayer(sender.getUUID());
+                                if(essentialsPlayer == null) return;
 
-                            essentialsPlayer.setBowTension(payload.tension());
+                                essentialsPlayer.setBowTension(tension.tension());
+                            } else if (payload instanceof BowDrawCancelPayloadToServer) {
+                                if (sender.isUsingItem()
+                                        && sender.getUseItem().getItem() instanceof BowItem) {
+                                    sender.stopUsingItem();
+                                }
+                            }
                         }
                 )
                 .toClient(
@@ -52,5 +63,13 @@ public final class EssentialsChannel {
                 )
                 .build();
         VisorNetwork.registerChannel(INSTANCE);
+    }
+
+    private static VisorPayloadToServer readToServer(byte id, FriendlyByteBuf buffer) {
+        return switch (id) {
+            case BowTensionPayloadToServer.PAYLOAD_ID -> BowTensionPayloadToServer.read(buffer);
+            case BowDrawCancelPayloadToServer.PAYLOAD_ID -> BowDrawCancelPayloadToServer.read(buffer);
+            default -> null;
+        };
     }
 }

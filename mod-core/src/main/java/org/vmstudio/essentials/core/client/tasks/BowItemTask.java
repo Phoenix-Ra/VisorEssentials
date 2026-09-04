@@ -15,6 +15,7 @@ import org.joml.Vector3f;
 import org.vmstudio.essentials.core.client.EssentialsClientSettings;
 import org.vmstudio.essentials.core.client.extensions.LocalPlayerExtension;
 import org.vmstudio.essentials.core.common.network.EssentialsChannel;
+import org.vmstudio.essentials.core.common.network.toserver.BowDrawCancelPayloadToServer;
 import org.vmstudio.essentials.core.common.network.toserver.BowTensionPayloadToServer;
 import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.visor.api.client.ClientFeature;
@@ -171,7 +172,7 @@ public class BowItemTask extends VisorTask implements VREventListener {
         } else if (currentTime - this.holdBowTime > 250) {
             // Delay disable to avoid premature cancellation
             this.canDrawBow = false;
-            if (isHoldingBowOnActiveHand(player)) {
+            if (isBow(player.getUseItem())) {
                 ((LocalPlayerExtension) player).visor$setUsingItem(
                         ItemStack.EMPTY, bowInteractionHand
                 );
@@ -187,8 +188,12 @@ public class BowItemTask extends VisorTask implements VREventListener {
             onNotched();
         }
 
-        if (this.drawingBow && !this.pressed && lastPressed && getDrawPercent() >= 0.1f) {
-            shoot(player);
+        if (this.drawingBow && !this.pressed) {
+            if (lastPressed && getDrawPercent() >= 0.1f) {
+                shoot(player);
+            } else {
+                cancelDraw();
+            }
         }
 
         if (!this.pressed) {
@@ -235,7 +240,15 @@ public class BowItemTask extends VisorTask implements VREventListener {
 
     @Override
     public void onClear(LocalPlayer player) {
+        if (this.drawingBow) {
+            cancelDraw();
+        }
         restoreActiveHand();
+        if (player != null && isBow(player.getUseItem())) {
+            ((LocalPlayerExtension) player).visor$setUsingItem(
+                    ItemStack.EMPTY, player.getUsedItemHand()
+            );
+        }
         this.drawingBow = false;
         this.canDrawBow = false;
         this.currentBowDraw = 0;
@@ -274,6 +287,15 @@ public class BowItemTask extends VisorTask implements VREventListener {
         }
     }
 
+
+    private void cancelDraw() {
+        EssentialsChannel.get().sendToServer(new BowDrawCancelPayloadToServer());
+        restoreActiveHand();
+        this.drawingBow = false;
+        this.currentBowDraw = 0;
+        this.lastHapticStep = 0;
+    }
+
     private void restoreActiveHand() {
         if (this.activeHandOverridden) {
             this.activeHandOverridden = false;
@@ -298,12 +320,6 @@ public class BowItemTask extends VisorTask implements VREventListener {
 
     public static boolean isHoldingBow(LivingEntity e, InteractionHand hand) {
         return isBow(e.getItemInHand(hand));
-    }
-
-    public static boolean isHoldingBowOnActiveHand(LivingEntity e) {
-        return isBow(e.getItemInHand(
-                VisorAPI.client().getVRLocalPlayer().getActiveHand().asInteractionHand()
-        ));
     }
 
     public Vec3 getAimVector() {

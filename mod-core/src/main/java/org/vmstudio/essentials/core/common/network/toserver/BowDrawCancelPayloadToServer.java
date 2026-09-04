@@ -3,12 +3,13 @@ package org.vmstudio.essentials.core.common.network.toserver;
 import net.minecraft.network.FriendlyByteBuf;
 import org.vmstudio.visor.api.common.network.VisorPayloadToServer;
 
-public record BowTensionPayloadToServer(float tension) implements VisorPayloadToServer {
-    public static final byte PAYLOAD_ID = 0;
+
+public record BowDrawCancelPayloadToServer() implements VisorPayloadToServer {
+    public static final byte PAYLOAD_ID = 1;
 
     @Override
     public void onWrite(FriendlyByteBuf buffer) {
-        buffer.writeFloat(tension);
+        //empty
     }
 
     @Override
@@ -16,7 +17,7 @@ public record BowTensionPayloadToServer(float tension) implements VisorPayloadTo
         return PAYLOAD_ID;
     }
 
-    public static BowTensionPayloadToServer read(FriendlyByteBuf buffer) {
-        return new BowTensionPayloadToServer(buffer.readFloat());
+    public static BowDrawCancelPayloadToServer read(FriendlyByteBuf buffer) {
+        return new BowDrawCancelPayloadToServer();
     }
 }
