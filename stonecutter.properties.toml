@@ -1,0 +1,37 @@
+# ---- Mod --------------------------------------------------------------------------------------
+mod_id = "visor_essentials"
+mod_name = "VisorEssentials"
+mod_group = "org.vmstudio"
+mod_authors = "PhoenixRa"
+mod_description = "Visor Addon, that is aimed to enhance the VR experience"
+mod_license = "LGPL-3.0-only"
+
+# ---- Visor ------------------------------------------------------------------------------------
+# (AtumVR and AtumConfiguration included).
+# "local" = <root>/libs, "maven" = Modrinth Maven (maven.modrinth:visor:<visor_version>+mc<mc>-<loader>:api)
+visor_source  = "local"
+visor_version = "0.6.0-snapshot-1"
+
+# ---- Common dependencies ----------------------------------------------------------------------
+fabric_loader_version = "0.16.14"
+fabric_loader_version_range = ">=0.14.14"
+# Compatibility level of the mixin configs: JAVA_<level>
+mixin_compat_level    = 17
+lombok_version        = "1.18.46"
+jetbrains_annotations_version = "26.1.0"
+
+# ---- Version Targets --------------------------------------------------------------------------
+[targets]
+"1.20.1" = ["fabric", "forge"]
+
+# ---- Version dependencies ---------------------------------------------------------------------
+["1.20.1"]
+# 1.20 - 1.20.1
+java_version = 17
+pack_format = 15
+minecraft_version_range_fabric = ">=1.20 <1.20.2"
+minecraft_version_range_forgelike = "[1.20,1.20.1]"
+parchment_version = "2023.09.03"
+fabric_api_version = "0.92.3"
+forge_version = "47.4.0"
+forge_version_range = "[46,)"

@@ -1,0 +1,39 @@
+# Settings of .github/workflows/release.yml and publish.yml, read by .github/scripts/release.py.
+# Repository variables: MODRINTH_ID (project R4fBkFEC), CURSEFORGE_ID (project 1317168).
+# Secrets: MODRINTH_TOKEN, CURSEFORGE_TOKEN.
+
+[build]
+java = "21"
+task = "buildAll"
+jars = "build/libs"
+exclude = ["*-dev*.jar", "*-sources.jar", "*-javadoc.jar"]
+
+
+[publish]
+# Version name and number on Modrinth/CurseForge.
+# Placeholders: {mod_name} {mod_version} {mc} {loader} {loaders},
+name = "{mod_name} {mod_version} - MC {mc} ({loader})"
+version = "{mod_version}+mc{mc}-{loader}"
+# mc-publish filter picking the versions inside the Minecraft range of a jar, "releases" = every full release
+game_version_filter = "releases"
+# Developer jars uploaded as additional files of the Modrinth version; the addon has none.
+modrinth_classifiers = []
+modrinth_slug = ""
+
+# Version table of the project
+[publish.versions]
+file = "stonecutter.properties.toml"
+java = "java_version"
+range.fabric = "minecraft_version_range_fabric"
+range.forge = "minecraft_version_range_forgelike"
+
+# Loaders listed for a jar, by the loader in its file name. Quilt runs Fabric mods.
+[publish.loaders]
+fabric = ["fabric", "quilt"]
+forge = ["forge"]
+
+# Dependencies listed for a jar, by the loader in its file name, in mc-publish syntax:
+#   id@version(type){modrinth:id}{curseforge:id}#(ignore:platform)
+[publish.dependencies]
+fabric = ["visor(required)"]
+forge = ["visor(required)"]

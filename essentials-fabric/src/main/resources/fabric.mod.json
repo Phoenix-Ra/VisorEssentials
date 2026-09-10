@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${mod_version}",
+
+  "name": "${mod_name}",
+  "description": "${mod_description}",
+  "authors": [
+    "${mod_authors}"
+  ],
+  "icon": "icon.png",
+  "license": "${mod_license}",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "org.vmstudio.essentials.loader.fabric.VisorEssentialsMod"
+    ]
+  },
+  "mixins": [
+    "visor_essentials.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": "${fabric_loader_version_range}",
+    "minecraft": "${minecraft_version_range_fabric}",
+    "java": ">=${java_version}"
+  },
+  "breaks": {
+    "visor": "<0.4.0"
+  }
+}

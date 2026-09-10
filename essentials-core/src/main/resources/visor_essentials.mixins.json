@@ -1,0 +1,38 @@
+{
+  "required": true,
+  "package": "org.vmstudio.essentials.core.mixin",
+  "plugin": "org.vmstudio.essentials.core.mixin.MixinConfig",
+  "compatibilityLevel": "JAVA_${mixin_compat_level}",
+  "refmap": "${mod_id}.refmap.json",
+  "client": [
+    "client.ClientPacketListenerMixin",
+    "client.LocalPlayerMixin",
+    "client.MinecraftMixin",
+    "client.gui.containers.AbstractContainerScreenMixin",
+    "client.gui.containers.AbstractFurnaceScreenMixin",
+    "client.gui.containers.AnvilScreenMixin",
+    "client.gui.containers.BeaconScreenMixin",
+    "client.gui.containers.BrewingStandScreenMixin",
+    "client.gui.containers.CartographyTableScreenMixin",
+    "client.gui.containers.ContainerScreenMixin",
+    "client.gui.containers.CraftingScreenMixin",
+    "client.gui.containers.DispenserScreenMixin",
+    "client.gui.containers.EnchantmentScreenMixin",
+    "client.gui.containers.GrindstoneScreenMixin",
+    "client.gui.containers.HopperScreenMixin",
+    "client.gui.containers.HorseInventoryScreenMixin",
+    "client.gui.containers.LoomScreenMixin",
+    "client.gui.containers.MerchantScreenMixin",
+    "client.gui.containers.ShulkerBoxScreenMixin",
+    "client.gui.containers.SmithingScreenMixin",
+    "client.gui.containers.StonecutterScreenMixin"
+  ],
+  "server": [
+  ],
+  "minVersion": "0.8.4",
+  "mixins": [
+    "common.bow.AbstractArrowMixin",
+    "common.bow.LivingEntityMixin",
+    "common.bow.ProjectileMixin"
+  ]
+}

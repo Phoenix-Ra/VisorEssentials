@@ -1,12 +1,7 @@
 name: Publish to Modrinth / CurseForge
 
-# What gets published, under which name, for which game versions and with which
-# dependencies is declared in .github/publish.json - see .github/CI.md.
-#
-# Required repository configuration:
-#   Variables: MODRINTH_ID, CURSEFORGE_ID
-#   Secrets:   MODRINTH_TOKEN, CURSEFORGE_TOKEN
-
+# Publishes the jars attached to a GitHub release by release.yml.
+# Settings: .github/release.toml [publish]. Helper: .github/scripts/release.py
 run-name: Publish ${{ inputs.tag }}${{ inputs.dry_run && ' (dry run)' || '' }}
 
 on:
@@ -25,7 +20,7 @@ on:
         type: boolean
         default: true
       version_type:
-        description: Release channel (auto = derived from the mod version)
+        description: Release channel (auto = from the tag name, beta/rc -> beta, alpha/snapshot/pre -> alpha)
         type: choice
         options:
           - auto
@@ -33,16 +28,12 @@ on:
           - beta
           - alpha
         default: auto
-      artifacts:
-        description: 'Only publish these artifacts, comma separated (default: all)'
+      only:
+        description: Publish only the jars whose file name matches this pattern, e.g. *mc1.20.1*
         type: string
-        default: ''
-      minecraft:
-        description: 'Only publish these Minecraft versions, comma separated (default: all)'
-        type: string
-        default: ''
+        default: '*'
       dry_run:
-        description: Resolve and print the plan without uploading anything
+        description: Show what would be published without uploading anything
         type: boolean
         default: false
 
@@ -53,140 +44,125 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  TAG: ${{ inputs.tag }}
+
 jobs:
-  plan:
-    name: Resolve publish plan
+  assets:
+    name: Read release assets
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.plan.outputs.matrix }}
+      matrix: ${{ steps.matrix.outputs.matrix }}
+      version_type: ${{ inputs.version_type == 'auto' && steps.matrix.outputs.version_type || inputs.version_type }}
     steps:
-      - name: Checkout CI config
-        uses: actions/checkout@v4
-        with:
-          sparse-checkout: .github
+      - name: Checkout settings and helper
+        uses: actions/checkout@v7
 
-      - name: Read release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ inputs.tag }}
-          REPO: ${{ github.repository }}
+      - name: Read the version table of the release tag
         run: |
           set -euo pipefail
-          gh release view "$TAG" --repo "$REPO" --json assets --jq '[.assets[].name]' > assets.json
-          gh release view "$TAG" --repo "$REPO" --json body --jq '.body // ""' > changelog.md
+          FILE=$(python3 .github/scripts/release.py config publish.versions.file)
+          git fetch --no-tags --depth=1 origin "refs/tags/$TAG:refs/tags/$TAG"
+          git show "refs/tags/$TAG:$FILE" > release-versions.toml
 
-      - name: Build publish matrix
-        id: plan
+      - name: Resolve publishable jars
+        id: matrix
         env:
-          REPO_VARS: ${{ toJSON(vars) }}
-          TAG: ${{ inputs.tag }}
-          VERSION_TYPE: ${{ inputs.version_type }}
-          FILTER_ARTIFACTS: ${{ inputs.artifacts }}
-          FILTER_MINECRAFT: ${{ inputs.minecraft }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ONLY: ${{ inputs.only }}
         run: |
-          python3 .github/scripts/modci.py matrix \
-            --config .github/publish.json \
-            --assets assets.json \
-            --vars "$REPO_VARS" \
-            --tag "$TAG" \
-            --version-type "$VERSION_TYPE" \
-            --artifacts "$FILTER_ARTIFACTS" \
-            --minecraft "$FILTER_MINECRAFT"
+          set -euo pipefail
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets > assets.json
+          python3 .github/scripts/release.py matrix assets.json --tag "$TAG" --only "$ONLY" --versions release-versions.toml
 
-      - name: Upload changelog artifact
-        uses: actions/upload-artifact@v4
+      - name: Save the release description as changelog
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json body --jq '.body // ""' > changelog.md
+
+      - name: Keep changelog and version table for the publish jobs
+        uses: actions/upload-artifact@v7
         with:
-          name: changelog
-          path: changelog.md
+          name: release-info
+          path: |
+            changelog.md
+            release-versions.toml
           retention-days: 1
 
   publish:
-    name: Publish ${{ matrix.entry.id }}
-    needs: plan
+    name: ${{ matrix.entry.file }}
+    needs: assets
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     strategy:
       fail-fast: false
-      max-parallel: 1
+      max-parallel: 1   # one upload at a time keeps the version order on the platforms stable
       matrix:
-        entry: ${{ fromJSON(needs.plan.outputs.matrix) }}
+        entry: ${{ fromJSON(needs.assets.outputs.matrix) }}
+    env:
+      FILE: ${{ matrix.entry.file }}
+      EXTRA: ${{ join(matrix.entry.extra, ' ') }}
     steps:
-      - name: Download changelog
-        uses: actions/download-artifact@v4
-        with:
-          name: changelog
+      - name: Checkout settings and helper
+        uses: actions/checkout@v7
 
-      - name: Download jars from the release
+      - name: Download changelog and version table
+        uses: actions/download-artifact@v8
+        with:
+          name: release-info
+
+      - name: Resolve loaders, game versions and dependencies
+        id: meta
+        # $EXTRA unquoted on purpose: the classifier jars of this version, space separated
+        run: python3 .github/scripts/release.py meta "$FILE" $EXTRA --dir dist --versions release-versions.toml --version-type "${{ needs.assets.outputs.version_type }}"
+
+      - name: Download the jars
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ inputs.tag }}
-          REPO: ${{ github.repository }}
-          FILES: ${{ toJSON(matrix.entry.files) }}
+          DOWNLOADS: ${{ steps.meta.outputs.downloads }}
         run: |
           set -euo pipefail
           mkdir -p dist
-          while IFS= read -r file; do
-            gh release download "$TAG" --repo "$REPO" --pattern "$file" --dir dist
-          done < <(jq -r '.[]' <<< "$FILES")
-          ls -l dist
-
-      - name: Report plan
-        env:
-          ENTRY: ${{ toJSON(matrix.entry) }}
-          MODRINTH: ${{ inputs.modrinth }}
-          CURSEFORGE: ${{ inputs.curseforge }}
-          DRY_RUN: ${{ inputs.dry_run }}
-        run: |
-          set -euo pipefail
-          jq . <<< "$ENTRY"
-          ID=$(jq -r '.id' <<< "$ENTRY")
-          for platform in modrinth curseforge; do
-            enabled=$([ "$platform" = "modrinth" ] && echo "$MODRINTH" || echo "$CURSEFORGE")
-            if [ "$enabled" = "true" ] && [ -z "$(jq -r ".${platform}_id" <<< "$ENTRY")" ]; then
-              echo "::warning::$ID has no $platform project id - set the ${platform}.id in .github/publish.json, or the repository variable its id_var names"
+          while read -r asset path; do
+            if [ -n "$asset" ]; then
+              gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "$asset" --output "$path"
             fi
-          done
-          if [ "$DRY_RUN" = "true" ]; then
-            {
-              echo "### Dry run: $ID"
-              echo '```json'
-              jq . <<< "$ENTRY"
-              echo '```'
-            } >> "$GITHUB_STEP_SUMMARY"
-          fi
+          done <<< "$DOWNLOADS"
 
+      # fail-mode fail: a rejected upload fails this job, rerun the failed jobs (or only one platform) once fixed
       - name: Publish to Modrinth
-        if: ${{ inputs.modrinth && !inputs.dry_run && matrix.entry.modrinth_id != '' }}
+        if: ${{ inputs.modrinth && !inputs.dry_run }}
         uses: Kir-Antipov/mc-publish@v3.3
         with:
-          modrinth-id: ${{ matrix.entry.modrinth_id }}
+          modrinth-id: ${{ vars.MODRINTH_ID }}
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
-          modrinth-featured: ${{ matrix.entry.featured }}
-          files: ${{ matrix.entry.files_input }}
-          name: ${{ matrix.entry.display_name }}
-          version: ${{ matrix.entry.version }}
-          version-type: ${{ matrix.entry.version_type }}
-          loaders: ${{ matrix.entry.loaders }}
-          game-versions: ${{ matrix.entry.game_versions }}
-          dependencies: ${{ matrix.entry.dependencies }}
-          java: ${{ matrix.entry.java }}
+          modrinth-featured: false
+          files: ${{ steps.meta.outputs.files }}
+          name: ${{ steps.meta.outputs.name }}
+          version: ${{ steps.meta.outputs.version }}
+          version-type: ${{ needs.assets.outputs.version_type }}
+          loaders: ${{ steps.meta.outputs.loaders }}
+          game-versions: ${{ steps.meta.outputs.game_versions }}
+          game-version-filter: ${{ steps.meta.outputs.filter }}
+          java: ${{ steps.meta.outputs.java }}
+          dependencies: ${{ steps.meta.outputs.dependencies }}
           changelog-file: changelog.md
-          fail-mode: warn
+          fail-mode: fail
 
+      # the main jar only: CurseForge has no Maven for the developer jars
       - name: Publish to CurseForge
-        if: ${{ inputs.curseforge && !inputs.dry_run && matrix.entry.curseforge_id != '' }}
+        if: ${{ inputs.curseforge && !inputs.dry_run }}
         uses: Kir-Antipov/mc-publish@v3.3
         with:
-          curseforge-id: ${{ matrix.entry.curseforge_id }}
+          curseforge-id: ${{ vars.CURSEFORGE_ID }}
           curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
-          files: ${{ matrix.entry.files_input }}
-          name: ${{ matrix.entry.display_name }}
-          version: ${{ matrix.entry.version }}
-          version-type: ${{ matrix.entry.version_type }}
-          loaders: ${{ matrix.entry.loaders }}
-          game-versions: ${{ matrix.entry.game_versions }}
-          dependencies: ${{ matrix.entry.dependencies }}
-          java: ${{ matrix.entry.java }}
+          files: dist/${{ matrix.entry.file }}
+          name: ${{ steps.meta.outputs.name }}
+          version: ${{ steps.meta.outputs.version }}
+          version-type: ${{ needs.assets.outputs.version_type }}
+          loaders: ${{ steps.meta.outputs.loaders }}
+          game-versions: ${{ steps.meta.outputs.game_versions }}
+          game-version-filter: ${{ steps.meta.outputs.filter }}
+          java: ${{ steps.meta.outputs.java }}
+          dependencies: ${{ steps.meta.outputs.dependencies }}
           changelog-file: changelog.md
-          fail-mode: warn
+          fail-mode: fail

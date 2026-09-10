@@ -1,0 +1,71 @@
+/* Plugin applied to the MOD LOADER subprojects */
+plugins {
+    id "essentials.minecraft"
+}
+
+def loader = branch
+def corePath = ":essentials-core:${minecraft_version}"
+
+// ---- Shared sources ------------------------------------------------------------------------
+configurations {
+    coreJava      { canBeConsumed = false; canBeResolved = true }
+    coreResources { canBeConsumed = false; canBeResolved = true }
+}
+
+dependencies {
+    compileOnly project(path: corePath, configuration: "namedElements")
+    coreJava      project(path: corePath, configuration: "coreJava")
+    coreResources project(path: corePath, configuration: "coreResources")
+
+    modCompileOnly visorApi(loader)
+}
+
+compileJava {
+    dependsOn configurations.coreJava
+    source configurations.coreJava
+}
+processResources {
+    dependsOn configurations.coreResources
+    from configurations.coreResources
+}
+sourcesJar {
+    from configurations.coreJava
+}
+
+// ---- Running --------------------------------------------------------------------------------
+loom {
+    mods {
+        create(mod_id) { sourceSet sourceSets.main }
+    }
+    runs {
+        configureEach {
+            preferGradleTask = true
+            ideConfigGenerated stonecutter.current.active
+            configName = "${loader.capitalize()} ${minecraft_version} ${name}"
+            runDir "../../../run/${loader}/${minecraft_version}/${name}"
+        }
+    }
+}
+
+// ---- Build ----------------------------------------------------------------------------------
+tasks.register("buildAndCollect", Copy) {
+    group = "build"
+    description = "Builds the ${loader} ${minecraft_version} mod jar and copies it to <root>/build/libs"
+    dependsOn "build"
+    // fabric for some reason has incorrect timestamp without this
+    // (when u built and see lastChange to fabric jar was a while ago is annoying)
+    outputs.upToDateWhen { false }
+    def marker = "+mc${minecraft_version}-${loader}"
+    def current = "${base.archivesName.get()}-${mod_version}+"
+    doFirst {
+        // previous builds of this target and every jar of another mod version
+        def dir = rootProject.layout.buildDirectory.dir("libs").get().asFile
+        dir.listFiles()?.each { f ->
+            if (f.name.endsWith(".jar") && (f.name.contains(marker) || !f.name.startsWith(current))) {
+                f.delete()
+            }
+        }
+    }
+    from(remapJar.archiveFile)
+    into(rootProject.layout.buildDirectory.dir("libs"))
+}

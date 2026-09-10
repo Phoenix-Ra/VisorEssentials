@@ -1,0 +1,141 @@
+/*
+ * Plugin applied to EVERY versioned subproject (":essentials-core:<mc>", ":essentials-fabric:<mc>",
+ * ":essentials-forge:<mc>").
+ */
+plugins {
+    id "java-library"
+    id "dev.architectury.loom"
+}
+
+// ---- Identity -----------------------------------------------------------------------------
+def minecraftVersion = stonecutter.current.version
+project.ext.minecraft_version = minecraftVersion
+project.ext.branch = project.parent.name - "essentials-" // remove "essentials-" prefix
+
+
+group = "${mod_group}.${mod_id}.${branch}"
+
+base.archivesName = mod_name.toString().replaceAll("\\s+", "")
+// release.yml / publish.yml parse this shape, keep the "+mc" marker
+version = "${mod_version}+mc${minecraftVersion}-${branch}"
+
+// ---- Java ---------------------------------------------------------------------------------
+def javaVersion = java_version as int
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(javaVersion)
+    withSourcesJar()
+}
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.release = javaVersion
+}
+
+// ---- Clean archives -----------------------------------------------------------------------
+def archivePrefix = "${base.archivesName.get()}-${version}"
+tasks.register("cleanStaleJars", Delete) {
+    description = "Deletes archives of other versions from build/libs and build/devlibs"
+    delete(["libs", "devlibs"].collect { dirName ->
+        fileTree(layout.buildDirectory.dir(dirName)) {
+            include "*.jar"
+            exclude "${archivePrefix}.jar", "${archivePrefix}-*.jar"
+        }
+    })
+}
+tasks.withType(AbstractArchiveTask).configureEach { mustRunAfter "cleanStaleJars" }
+tasks.named("assemble") { dependsOn "cleanStaleJars" }
+
+// ---- Repositories -------------------------------------------------------------------------
+repositories {
+    mavenCentral()
+    maven { name = "Fabric"; url = "https://maven.fabricmc.net/" }
+    maven { name = "Architectury"; url = "https://maven.architectury.dev/" }
+    maven { name = "Forge"; url = "https://maven.minecraftforge.net/" }
+    maven { name = "NeoForge"; url = "https://maven.neoforged.net/releases/" }
+    maven { name = "Mojang"; url = "https://libraries.minecraft.net/" }
+    maven { name = "Parchment"; url = "https://maven.parchmentmc.org" }
+    maven { name = "JitPack"; url = "https://jitpack.io" }
+    maven { name = "Sonatype"; url = "https://oss.sonatype.org/content/repositories/snapshots/" }
+    maven { name = "Redempt"; url = "https://redempt.dev" }
+
+    // ---- LOCAL DEPENDENCY: the Visor API jars in <root>/libs
+    flatDir { dirs rootProject.file("libs") }
+    // ----
+
+    exclusiveContent {
+        forRepository { maven { name = "Modrinth"; url = "https://api.modrinth.com/maven" } }
+        filter { includeGroup "maven.modrinth" }
+    }
+}
+
+// ---- Visor API ---------------------------------------------------------------------------
+if (!(visor_source in ["local", "maven"])) {
+    throw new GradleException("visor_source must be \"local\" or \"maven\", got \"${visor_source}\"")
+}
+project.ext.visorApi = { String loader ->
+    def artifact = "${visor_version}+mc${minecraftVersion}-${loader}"
+    visor_source == "local"
+            ? [name: "Visor-${artifact}-api"]
+            : "maven.modrinth:visor:${artifact}:api"
+}
+
+// ---- Minecraft ----------------------------------------------------------------------------
+project.ext.essentialsAccessWidener = stonecutter.process(
+        rootProject.file("essentials-core/src/main/resources/visor_essentials.accesswidener"),
+        "build/visor_essentials.accesswidener")
+
+loom {
+    silentMojangMappingsLicense()
+    accessWidenerPath = essentialsAccessWidener
+    mixin {
+        // At runtime Fabric uses "intermediary" names and Forge uses "SRG" names,
+        // not the Mojang names used by mod.
+        // Mixin needs a "refmap" to translate its targets. Loom generates it.
+        useLegacyMixinAp = true
+        defaultRefmapName = "${mod_id}.refmap.json"
+    }
+}
+
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraftVersion}"
+    mappings loom.layered() {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${minecraftVersion}:${parchment_version}@zip")
+    }
+
+    compileOnly "org.projectlombok:lombok:${lombok_version}"
+    annotationProcessor "org.projectlombok:lombok:${lombok_version}"
+    compileOnly "org.jetbrains:annotations:${jetbrains_annotations_version}"
+}
+
+// ---- Resources --------------------------------------------------------------
+project.ext.resourcePlaceholders = [
+        mod_id                           : mod_id,
+        mod_name                         : mod_name,
+        mod_version                      : mod_version,
+        mod_authors                      : mod_authors,
+        mod_description                  : mod_description,
+        mod_license                      : mod_license,
+        minecraft_version                : minecraftVersion,
+        java_version                     : java_version,
+        mixin_compat_level               : mixin_compat_level,
+        pack_format                      : pack_format,
+        fabric_loader_version            : fabric_loader_version,
+        fabric_loader_version_range      : fabric_loader_version_range,
+        minecraft_version_range_fabric   : minecraft_version_range_fabric,
+        minecraft_version_range_forgelike: minecraft_version_range_forgelike,
+        forge_version_range              : findProperty("forge_version_range") ?: "",
+]
+
+processResources {
+    inputs.properties(resourcePlaceholders)
+    filesMatching(["fabric.mod.json", "META-INF/*.toml", "pack.mcmeta"]) {
+        expand(resourcePlaceholders)
+    }
+
+    filesMatching(["*.mixins.json", "*.mixins.*.json"]) {
+        filter { String line ->
+            resourcePlaceholders.inject(line) { l, key, value -> l.replace('${' + key + '}', value.toString()) }
+        }
+    }
+}

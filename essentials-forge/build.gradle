@@ -1,0 +1,20 @@
+// Build script of every ":essentials-forge:<mc>" subproject.
+plugins {
+    id "essentials.loader"
+}
+
+dependencies {
+    forge "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+
+    // @Environment annotation of the shared sources, Forge ignores it
+    compileOnly("net.fabricmc:fabric-loader:${fabric_loader_version}") { transitive = false }
+}
+
+loom {
+    forge {
+        convertAccessWideners = true
+        extraAccessWideners.add loom.accessWidenerPath.get().asFile.name
+
+        mixinConfig "${mod_id}.mixins.json"
+    }
+}
