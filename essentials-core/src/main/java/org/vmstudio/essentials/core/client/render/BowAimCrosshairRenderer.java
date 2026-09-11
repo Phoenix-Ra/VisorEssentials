@@ -2,16 +2,15 @@ package org.vmstudio.essentials.core.client.render;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Axis;
 import net.minecraft.core.BlockPos;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.resources.ResourceLocation;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderUtils;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McVertexBuilder;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.ClipContext;
@@ -37,9 +36,8 @@ import static org.vmstudio.essentials.core.client.AddonEntryClient.MC;
 
 public class BowAimCrosshairRenderer implements VREventListener {
 
-    private static final ResourceLocation ICONS_LOC =
-            new ResourceLocation("textures/gui/icons.png");
-    private static final float UV_SIZE = 15f / 256f;
+    private static final ResourceLocation ICONS_LOC = McRenderUtils.crosshairTexture();
+    private static final float UV_SIZE = McRenderUtils.crosshairUvSize();
 
     private static final double MAX_AIM_DISTANCE = 64.0;
     private static final float SCALE_REF_DISTANCE = 4.5f;
@@ -147,7 +145,6 @@ public class BowAimCrosshairRenderer implements VREventListener {
                         float brightness) {
 
         // --- Prepare variables ---
-        BufferBuilder buf = Tesselator.getInstance().getBuilder();
 
         float horizontalLength = Mth.sqrt(
                 (float) (aimDir.x * aimDir.x + aimDir.z * aimDir.z)
@@ -188,6 +185,7 @@ public class BowAimCrosshairRenderer implements VREventListener {
         poseStack.scale(scale, scale, scale);
         Matrix4f mat = poseStack.last().pose();
 
+        McVertexBuilder buf = McVertexBuilder.get();
         buf.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
         buf.vertex(mat, -1f, 1f, 0f)
                 .uv(UV_SIZE, 0f)
@@ -205,7 +203,7 @@ public class BowAimCrosshairRenderer implements VREventListener {
                 .uv(UV_SIZE, UV_SIZE)
                 .color(brightness, brightness, brightness, 1f)
                 .endVertex();
-        BufferUploader.drawWithShader(buf.end());
+        buf.draw();
 
         // --- Restore ---
         poseStack.popPose();

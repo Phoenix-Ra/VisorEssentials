@@ -76,7 +76,10 @@ public class EssentialsSettingsScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        //? if <1.20.2 {
+        /*//
         renderBackground(graphics);
+        *///?}
         super.render(graphics, mouseX, mouseY, partialTick);
         graphics.drawCenteredString(this.font, this.title, this.width / 2, 12, 0xFFFFFF);
     }

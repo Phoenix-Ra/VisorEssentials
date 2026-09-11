@@ -2,6 +2,7 @@ package org.vmstudio.essentials.core.mixin.client.gui.containers;
 
 import org.vmstudio.essentials.core.client.extensions.AbstractContainerScreenExtension;
 import org.vmstudio.essentials.core.common.VisorEssentials;
+import org.vmstudio.visor.api.compatibility.mcversion.McVersionUtils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.LoomScreen;
@@ -22,7 +23,7 @@ public abstract class LoomScreenMixin
         implements AbstractContainerScreenExtension {
 
     @Unique
-    private ResourceLocation visorEssentials$VrTexture = new ResourceLocation(
+    private ResourceLocation visorEssentials$VrTexture = McVersionUtils.newResourceLoc(
             VisorEssentials.MOD_ID,
             "textures/gui/container/loom.png"
     );

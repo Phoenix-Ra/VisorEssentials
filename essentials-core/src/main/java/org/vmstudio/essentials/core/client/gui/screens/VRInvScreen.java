@@ -4,13 +4,13 @@ import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.essentials.core.client.gui.ContainerSlot;
+import org.vmstudio.essentials.core.client.gui.RecipeBookButton;
 import org.vmstudio.essentials.core.client.gui.overlays.VROverlayContainer;
 import org.vmstudio.essentials.core.client.extensions.AbstractContainerScreenExtension;
 import org.vmstudio.essentials.core.common.VisorEssentials;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
 import net.minecraft.client.gui.screens.recipebook.RecipeUpdateListener;
@@ -22,12 +22,18 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.Recipe;
+//? if <1.20.2 {
+/*import net.minecraft.world.item.crafting.Recipe;
+*///?} else {
+import net.minecraft.world.item.crafting.RecipeHolder;
+//?}
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.vmstudio.visor.api.client.gui.GuiTexture;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McRenderUtils;
+import org.vmstudio.visor.api.compatibility.mcversion.McVersionUtils;
 import org.vmstudio.visor.api.server.VRServerSettings;
 
 import java.util.Iterator;
@@ -36,21 +42,18 @@ import java.util.List;
 
 public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContainerScreenExtension, RecipeUpdateListener {
     private GuiTexture IMAGE_FULL = new GuiTexture(
-            new ResourceLocation(VisorEssentials.MOD_ID,"textures/gui/inventory.png"),
+            McVersionUtils.newResourceLoc(VisorEssentials.MOD_ID,"textures/gui/inventory.png"),
             0,0,258,156
     );
     private GuiTexture IMAGE_FULL_WITH_OFFHAND = new GuiTexture(
-            new ResourceLocation(VisorEssentials.MOD_ID,"textures/gui/inventory_with_offhand.png"),
+            McVersionUtils.newResourceLoc(VisorEssentials.MOD_ID,"textures/gui/inventory_with_offhand.png"),
             0,0,278,156
     );
     private GuiTexture IMAGE_SIMPLIFIED = new GuiTexture(
-            new ResourceLocation(VisorEssentials.MOD_ID,"textures/gui/inventory_simplified.png"),
+            McVersionUtils.newResourceLoc(VisorEssentials.MOD_ID,"textures/gui/inventory_simplified.png"),
             0,0,258,156
     );
 
-
-    private static final ResourceLocation RECIPE_BUTTON_LOCATION =
-            new ResourceLocation("textures/gui/recipe_button.png");
 
     public static final int IMAGE_HEIGHT = 156;
     public static final int RECIPE_BOOK_GAP = 2;
@@ -63,6 +66,8 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
 
     private final RecipeBookComponent recipeBookComponent = new VRRecipeBookComponent();
     private boolean recipeBookAvailable;
+    // a recipe update arrived while another menu (creative ItemPickerMenu, a chest) was current
+    private boolean recipesDirty;
 
     private Button creativeButton;
 
@@ -200,7 +205,7 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
         }
         // --]
         recipeBookAvailable = fullInventory
-                && this.menu instanceof RecipeBookMenu<?>;
+                && this.menu instanceof RecipeBookMenu;
         if (!recipeBookAvailable) {
             return;
         }
@@ -212,10 +217,10 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
                 2 * bookTop + RecipeBookComponent.IMAGE_HEIGHT,
                 this.minecraft,
                 false,
-                (RecipeBookMenu<?>) this.menu
+                (RecipeBookMenu) this.menu
         );
         int xOffset = hasOffhandSlot() ? 20 : 0;
-        this.addRenderableWidget(new ImageButton(this.leftPos + 188 + xOffset, this.topPos + 62, 20, 18, 0, 0, 19, RECIPE_BUTTON_LOCATION, (button) -> {
+        this.addRenderableWidget(RecipeBookButton.create(this.leftPos + 188 + xOffset, this.topPos + 62, (button) -> {
             this.recipeBookComponent.toggleVisibility();
             this.buttonClicked = true;
         }));
@@ -232,8 +237,19 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
         }
         // --]
         if (recipeBookAvailable) {
+            if (recipesDirty && isMenuCurrent()) {
+                recipesDirty = false;
+                this.recipeBookComponent.recipesUpdated();
+            }
             this.recipeBookComponent.tick();
         }
+    }
+
+
+    private boolean isMenuCurrent() {
+        return this.minecraft != null
+                && this.minecraft.player != null
+                && this.minecraft.player.containerMenu == this.menu;
     }
 
     private boolean isCreativeMode() {
@@ -326,7 +342,7 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
     public static void renderEntityInInventory(GuiGraphics guiGraphics, int x, int y, int scale, Quaternionf pose, @Nullable Quaternionf cameraOrientation, LivingEntity entity) {
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(x, y, (double)50.0F);
-        guiGraphics.pose().mulPoseMatrix((new Matrix4f()).scaling((float)scale, (float)scale, (float)(-scale)));
+        McRenderUtils.mulPose(guiGraphics.pose(), (new Matrix4f()).scaling((float)scale, (float)scale, (float)(-scale)));
         guiGraphics.pose().mulPose(pose);
         Lighting.setupForEntityInInventory();
         EntityRenderDispatcher entityRenderDispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
@@ -377,9 +393,17 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
 
     @Override
     public void recipesUpdated() {
-        if (recipeBookAvailable) {
-            this.recipeBookComponent.recipesUpdated();
+        if (!recipeBookAvailable) {
+            return;
         }
+        // [-- Modified: deferred until this menu is current again, see isMenuCurrent()
+        if (!isMenuCurrent()) {
+            recipesDirty = true;
+            return;
+        }
+        // --]
+        recipesDirty = false;
+        this.recipeBookComponent.recipesUpdated();
     }
 
     @Override
@@ -434,7 +458,8 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
 
     private class VRRecipeBookComponent extends RecipeBookComponent {
 
-        @Override
+        //? if <1.20.2 {
+        /*@Override
         public void setupGhostRecipe(Recipe<?> recipe, List<Slot> slots) {
             if (!recipeBookAvailable) {
                 return;
@@ -444,10 +469,27 @@ public class VRInvScreen extends VRInvEffectInvScreen implements AbstractContain
             addGhostIngredient(Ingredient.of(resultStack), slots.get(0));
             this.placeRecipe(this.menu.getGridWidth(), this.menu.getGridHeight(), this.menu.getResultSlotIndex(), recipe, recipe.getIngredients().iterator(), 0);
         }
-
+        *///?} else {
         @Override
+        public void setupGhostRecipe(RecipeHolder<?> recipe, List<Slot> slots) {
+            if (!recipeBookAvailable) {
+                return;
+            }
+            ItemStack resultStack = recipe.value().getResultItem(this.minecraft.level.registryAccess());
+            this.ghostRecipe.setRecipe(recipe);
+            addGhostIngredient(Ingredient.of(resultStack), slots.get(0));
+            this.placeRecipe(this.menu.getGridWidth(), this.menu.getGridHeight(), this.menu.getResultSlotIndex(), recipe, recipe.value().getIngredients().iterator(), 0);
+        }
+        //?}
+
+        //? if <1.21 {
+        /*@Override
         public void addItemToSlot(Iterator<Ingredient> ingredients, int slotIndex, int maxAmount, int gridX, int gridY) {
             Ingredient ingredient = ingredients.next();
+        *///?} else {
+        @Override
+        public void addItemToSlot(Ingredient ingredient, int slotIndex, int maxAmount, int gridX, int gridY) {
+        //?}
             if (!ingredient.isEmpty()) {
                 addGhostIngredient(ingredient, this.menu.slots.get(slotIndex));
             }

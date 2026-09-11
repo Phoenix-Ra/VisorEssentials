@@ -1,7 +1,9 @@
 package org.vmstudio.essentials.core.mixin.client.gui.containers;
 
 import org.vmstudio.essentials.core.client.extensions.AbstractContainerScreenExtension;
+import org.vmstudio.essentials.core.client.gui.RecipeBookButton;
 import org.vmstudio.essentials.core.common.VisorEssentials;
+import org.vmstudio.visor.api.compatibility.mcversion.McVersionUtils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.components.events.GuiEventListener;
@@ -26,9 +28,6 @@ public abstract class AbstractFurnaceScreenMixin <T extends AbstractFurnaceMenu>
         extends AbstractContainerScreen<T>
         implements RecipeUpdateListener, AbstractContainerScreenExtension {
 
-    @Shadow
-    @Final
-    private static ResourceLocation RECIPE_BUTTON_LOCATION;
     @Shadow @Final
     public AbstractFurnaceRecipeBookComponent recipeBookComponent;
     @Shadow private boolean widthTooNarrow;
@@ -41,19 +40,19 @@ public abstract class AbstractFurnaceScreenMixin <T extends AbstractFurnaceMenu>
     }
 
     @Inject(method = "<init>", at = @At("TAIL"))
-    public void visorEssentials$onInit(AbstractFurnaceMenu menu, AbstractFurnaceRecipeBookComponent recipeBookComponent, Inventory playerInventory, Component title, ResourceLocation texture, CallbackInfo ci) {
+    public void visorEssentials$onInit(CallbackInfo ci) {
         if(((Object)this) instanceof BlastFurnaceScreen) {
-            visorEssentials$VrTexture = new ResourceLocation(
+            visorEssentials$VrTexture = McVersionUtils.newResourceLoc(
                     VisorEssentials.MOD_ID,
                     "textures/gui/container/blast_furnace.png"
             );
         } else if (((Object)this) instanceof SmokerScreen) {
-            visorEssentials$VrTexture = new ResourceLocation(
+            visorEssentials$VrTexture = McVersionUtils.newResourceLoc(
                     VisorEssentials.MOD_ID,
                     "textures/gui/container/smoker.png"
             );
         } else if(((Object)this) instanceof FurnaceScreen){
-            visorEssentials$VrTexture = new ResourceLocation(
+            visorEssentials$VrTexture = McVersionUtils.newResourceLoc(
                     VisorEssentials.MOD_ID,
                     "textures/gui/container/furnace.png"
             );
@@ -95,10 +94,10 @@ public abstract class AbstractFurnaceScreenMixin <T extends AbstractFurnaceMenu>
     private GuiEventListener visorEssentials$recipeBook(AbstractFurnaceScreen instance, GuiEventListener guiEventListener){
 
         if(visorEssentials$isVRContainer()){
-            return addRenderableWidget(new ImageButton(this.leftPos + 20, /*modified*/topPos + 35, 20, 18, 0, 0, 19, RECIPE_BUTTON_LOCATION, (arg) -> {
+            return addRenderableWidget(RecipeBookButton.create(this.leftPos + 20, topPos + 35, (arg) -> {
                 this.recipeBookComponent.toggleVisibility();
                 this.leftPos = this.recipeBookComponent.updateScreenPosition(this.width, this.imageWidth);
-                arg.setPosition(this.leftPos + 20, /*modified*/topPos + 35);
+                arg.setPosition(this.leftPos + 20, topPos + 35);
             }));
         }
         return addRenderableWidget((ImageButton)guiEventListener);

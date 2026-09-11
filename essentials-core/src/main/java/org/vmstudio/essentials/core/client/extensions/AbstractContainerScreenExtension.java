@@ -1,7 +1,9 @@
 package org.vmstudio.essentials.core.client.extensions;
 
+import net.minecraft.world.inventory.Slot;
 import org.vmstudio.essentials.core.client.gui.ContainerSlot;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -36,6 +38,12 @@ public interface AbstractContainerScreenExtension {
     @NotNull
     default List<ContainerSlot> visorEssentials$getVRSlots(){
         return List.of();
+    }
+
+
+    @Nullable
+    default ContainerSlot visorEssentials$getVRSlot(@NotNull Slot slot){
+        return null;
     }
 
 

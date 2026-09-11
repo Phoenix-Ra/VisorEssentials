@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "org.vmstudio.essentials.loader.neoforge.mixin",
+  "plugin": "org.vmstudio.essentials.core.mixin.MixinConfig",
+  "compatibilityLevel": "JAVA_${mixin_compat_level}",
+  "refmap": "${mod_id}.refmap.json",
+  "client": [
+    "NeoForgeContainerSlotPosMixin"
+  ],
+  "minVersion": "0.8.4"
+}

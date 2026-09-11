@@ -26,14 +26,17 @@ file = "stonecutter.properties.toml"
 java = "java_version"
 range.fabric = "minecraft_version_range_fabric"
 range.forge = "minecraft_version_range_forgelike"
+range.neoforge = "minecraft_version_range_forgelike"
 
 # Loaders listed for a jar, by the loader in its file name. Quilt runs Fabric mods.
 [publish.loaders]
 fabric = ["fabric", "quilt"]
 forge = ["forge"]
+neoforge = ["neoforge"]
 
 # Dependencies listed for a jar, by the loader in its file name, in mc-publish syntax:
 #   id@version(type){modrinth:id}{curseforge:id}#(ignore:platform)
 [publish.dependencies]
 fabric = ["visor(required)"]
 forge = ["visor(required)"]
+neoforge = ["visor(required)"]

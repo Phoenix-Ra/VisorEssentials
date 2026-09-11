@@ -2,6 +2,7 @@ package org.vmstudio.essentials.core.mixin.client.gui.containers;
 
 import org.vmstudio.essentials.core.client.extensions.AbstractContainerScreenExtension;
 import org.vmstudio.essentials.core.common.VisorEssentials;
+import org.vmstudio.visor.api.compatibility.mcversion.McVersionUtils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AnvilScreen;
 import net.minecraft.client.gui.screens.inventory.ItemCombinerScreen;
@@ -21,7 +22,7 @@ public abstract class AnvilScreenMixin
         extends ItemCombinerScreen<AnvilMenu>
         implements AbstractContainerScreenExtension {
     @Unique
-    private ResourceLocation visorEssentials$VrTexture = new ResourceLocation(
+    private ResourceLocation visorEssentials$VrTexture = McVersionUtils.newResourceLoc(
             VisorEssentials.MOD_ID,
             "textures/gui/container/anvil.png"
     );
@@ -55,7 +56,9 @@ public abstract class AnvilScreenMixin
         super.renderBg(guiGraphics, partialTick, mouseX, mouseY);
 
     }
-    @Redirect(method = "renderBg", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blit(Lnet/minecraft/resources/ResourceLocation;IIIIII)V"))
+
+    //? if <1.20.2 {
+    /*@Redirect(method = "renderBg", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blit(Lnet/minecraft/resources/ResourceLocation;IIIIII)V"))
     private void visorEssentials$background2(GuiGraphics instance, ResourceLocation atlasLocation, int x, int y, int uOffset, int vOffset, int uWidth, int vHeight){
         if(visorEssentials$isVRContainer()) {
             int imageHeight = 166; //vanilla image used
@@ -71,6 +74,7 @@ public abstract class AnvilScreenMixin
         instance.blit(atlasLocation, x, y, uOffset, vOffset, uWidth, vHeight);
 
     }
+    *///?}
 
     @Override
     public boolean visorEssentials$supportsVRContainer() {

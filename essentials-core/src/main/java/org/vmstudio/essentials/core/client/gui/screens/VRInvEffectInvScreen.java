@@ -10,17 +10,25 @@ import net.minecraft.client.resources.MobEffectTextureManager;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.world.effect.MobEffect;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffectUtil;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import org.vmstudio.visor.api.compatibility.mcversion.McVersionUtils;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 public abstract class VRInvEffectInvScreen extends AbstractContainerScreen<AbstractContainerMenu> {
+
+    //? if >=1.20.2 {
+    private static final ResourceLocation EFFECT_BACKGROUND_LARGE_SPRITE =
+            McVersionUtils.newResourceLoc("container/inventory/effect_background_large");
+    private static final ResourceLocation EFFECT_BACKGROUND_SMALL_SPRITE =
+            McVersionUtils.newResourceLoc("container/inventory/effect_background_small");
+    //?}
 
     @Setter
     @Getter
@@ -72,7 +80,7 @@ public abstract class VRInvEffectInvScreen extends AbstractContainerScreen<Abstr
                 }
 
                 if (mobEffectInstance != null) {
-                    List<Component> list = List.of(this.getEffectName(mobEffectInstance), MobEffectUtil.formatDuration(mobEffectInstance, 1.0F));
+                    List<Component> list = List.of(this.getEffectName(mobEffectInstance), this.getEffectDuration(mobEffectInstance));
                     guiGraphics.renderTooltip(this.font, list, Optional.empty(), mouseX, mouseY);
                 }
             }
@@ -88,11 +96,19 @@ public abstract class VRInvEffectInvScreen extends AbstractContainerScreen<Abstr
         int i = this.topPos;
 
         for(MobEffectInstance mobEffectInstance : effects) {
-            if (isSmall) {
+            //? if <1.20.2 {
+            /*if (isSmall) {
                 guiGraphics.blit(INVENTORY_LOCATION, renderX, i, 0, 166, 120, 32);
             } else {
                 guiGraphics.blit(INVENTORY_LOCATION, renderX, i, 0, 198, 32, 32);
             }
+            *///?} else {
+            if (isSmall) {
+                guiGraphics.blitSprite(EFFECT_BACKGROUND_LARGE_SPRITE, renderX, i, 120, 32);
+            } else {
+                guiGraphics.blitSprite(EFFECT_BACKGROUND_SMALL_SPRITE, renderX, i, 32, 32);
+            }
+            //?}
 
             i += yOffset;
         }
@@ -104,8 +120,7 @@ public abstract class VRInvEffectInvScreen extends AbstractContainerScreen<Abstr
         int i = this.topPos;
 
         for(MobEffectInstance mobEffectInstance : effects) {
-            MobEffect mobEffect = mobEffectInstance.getEffect();
-            TextureAtlasSprite textureAtlasSprite = mobEffectTextureManager.get(mobEffect);
+            TextureAtlasSprite textureAtlasSprite = mobEffectTextureManager.get(mobEffectInstance.getEffect());
             guiGraphics.blit(renderX + (isSmall ? 6 : 7), i + 7, 0, 18, 18, textureAtlasSprite);
             i += yOffset;
         }
@@ -118,15 +133,29 @@ public abstract class VRInvEffectInvScreen extends AbstractContainerScreen<Abstr
         for(MobEffectInstance mobEffectInstance : effects) {
             Component component = this.getEffectName(mobEffectInstance);
             guiGraphics.drawString(this.font, component, renderX + 10 + 18, i + 6, 16777215);
-            Component component2 = MobEffectUtil.formatDuration(mobEffectInstance, 1.0F);
+            Component component2 = this.getEffectDuration(mobEffectInstance);
             guiGraphics.drawString(this.font, component2, renderX + 10 + 18, i + 6 + 10, 8355711);
             i += yOffset;
         }
 
     }
 
-    private Component getEffectName(MobEffectInstance effect) {
+    private Component getEffectDuration(MobEffectInstance effect) {
+        //? if <1.20.3 {
+        /*return MobEffectUtil.formatDuration(effect, 1.0F);
+        *///?} else {
+        // 1.20.3 made the displayed duration follow the world's tick rate
+        return MobEffectUtil.formatDuration(effect, 1.0F, this.minecraft.level.tickRateManager().tickrate());
+        //?}
+    }
+
+    //? if <1.20.5 {
+    /*private Component getEffectName(MobEffectInstance effect) {
         MutableComponent mutableComponent = effect.getEffect().getDisplayName().copy();
+    *///?} else {
+    private Component getEffectName(MobEffectInstance effect) {
+        MutableComponent mutableComponent = effect.getEffect().value().getDisplayName().copy();
+    //?}
         if (effect.getAmplifier() >= 1 && effect.getAmplifier() <= 9) {
             MutableComponent var10000 = mutableComponent.append(CommonComponents.SPACE);
             int var10001 = effect.getAmplifier();

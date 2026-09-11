@@ -1,7 +1,9 @@
 package org.vmstudio.essentials.core.mixin.client.gui.containers;
 
 import org.vmstudio.essentials.core.client.extensions.AbstractContainerScreenExtension;
+import org.vmstudio.essentials.core.client.gui.RecipeBookButton;
 import org.vmstudio.essentials.core.common.VisorEssentials;
+import org.vmstudio.visor.api.compatibility.mcversion.McVersionUtils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.components.events.GuiEventListener;
@@ -26,14 +28,13 @@ public abstract class CraftingScreenMixin
         extends AbstractContainerScreen<CraftingMenu>
         implements AbstractContainerScreenExtension {
 
-    @Shadow @Final private static ResourceLocation RECIPE_BUTTON_LOCATION;
     @Shadow @Final
     private RecipeBookComponent recipeBookComponent;
 
     @Shadow private boolean widthTooNarrow;
 
     @Unique
-    private ResourceLocation visorEssentials$VrTexture = new ResourceLocation(
+    private ResourceLocation visorEssentials$VrTexture = McVersionUtils.newResourceLoc(
             VisorEssentials.MOD_ID,
             "textures/gui/container/crafting_table.png"
             );
@@ -81,10 +82,10 @@ public abstract class CraftingScreenMixin
     private GuiEventListener visorEssentials$recipeBook(CraftingScreen instance, GuiEventListener guiEventListener){
 
         if(visorEssentials$isVRContainer()){
-            return addRenderableWidget(new ImageButton(this.leftPos + 5, /*modified*/topPos + 35 , 20, 18, 0, 0, 19, RECIPE_BUTTON_LOCATION, (arg) -> {
+            return addRenderableWidget(RecipeBookButton.create(this.leftPos + 5, topPos + 35, (arg) -> {
                 this.recipeBookComponent.toggleVisibility();
                 this.leftPos = this.recipeBookComponent.updateScreenPosition(this.width, this.imageWidth);
-                arg.setPosition(this.leftPos + 5, /*modified*/topPos + 35);
+                arg.setPosition(this.leftPos + 5, topPos + 35);
             }));
         }
         return addRenderableWidget((ImageButton)guiEventListener);

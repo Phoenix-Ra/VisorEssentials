@@ -9,7 +9,11 @@ import net.minecraft.network.protocol.game.ClientboundPlaceGhostRecipePacket;
 import net.minecraft.network.protocol.game.ClientboundRecipePacket;
 import net.minecraft.network.protocol.game.ClientboundUpdateRecipesPacket;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.crafting.Recipe;
+//? if <1.20.2 {
+/*import net.minecraft.world.item.crafting.Recipe;
+*///?} else {
+import net.minecraft.world.item.crafting.RecipeHolder;
+//?}
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -18,6 +22,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.vmstudio.essentials.core.client.EssentialsClientSettings;
 import org.vmstudio.essentials.core.client.gui.overlays.VROverlayContainer;
 import org.vmstudio.essentials.core.client.gui.overlays.VROverlayInventory;
+import org.vmstudio.essentials.core.client.gui.screens.VRInvScreen;
 import org.vmstudio.essentials.core.server.EssentialsServerSettings;
 import org.vmstudio.visor.api.VisorAPI;
 import org.vmstudio.visor.api.client.gui.overlays.framework.screen.VROverlayScreenInScreen;
@@ -63,10 +68,19 @@ public class ClientPacketListenerMixin {
 
     @Unique
     private static void visorEssentials$notifyScreen(VROverlayScreenInScreen<?> overlay) {
-        if (overlay != null
-                && overlay.getScreen() instanceof RecipeUpdateListener listener) {
-            listener.recipesUpdated();
+        if (overlay == null
+                || !(overlay.getScreen() instanceof RecipeUpdateListener listener)) {
+            return;
         }
+        if (!(listener instanceof VRInvScreen)) {
+            var player = Minecraft.getInstance().player;
+            if (player == null
+                    || !(listener instanceof MenuAccess<?> menuAccess)
+                    || menuAccess.getMenu() != player.containerMenu) {
+                return;
+            }
+        }
+        listener.recipesUpdated();
     }
 
     /**
@@ -104,10 +118,17 @@ public class ClientPacketListenerMixin {
                 });
     }
 
-    @Unique
+    //? if <1.20.2 {
+    /*@Unique
     private static void visorEssentials$setupGhostRecipe(VROverlayScreenInScreen<?> overlay,
                                                          AbstractContainerMenu menu,
                                                          Recipe<?> recipe) {
+    *///?} else {
+    @Unique
+    private static void visorEssentials$setupGhostRecipe(VROverlayScreenInScreen<?> overlay,
+                                                         AbstractContainerMenu menu,
+                                                         RecipeHolder<?> recipe) {
+    //?}
         if (overlay == null) {
             return;
         }

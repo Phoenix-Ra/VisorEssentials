@@ -28,6 +28,7 @@ import org.vmstudio.visor.api.common.addon.VisorAddon;
 import org.vmstudio.visor.api.common.eventbus.listener.VREventHandler;
 import org.vmstudio.visor.api.common.eventbus.listener.VREventListener;
 import org.vmstudio.visor.api.common.player.VRPose;
+import org.vmstudio.visor.api.compatibility.mcversion.render.McVertexBuilder;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -158,7 +159,11 @@ public class RemoteOverlayRenderHelper implements VREventListener {
     private static void renderPlaceholderText(@NotNull PoseStack poseStack,
                                               @NotNull Font font,
                                               boolean backSide) {
-        MultiBufferSource.BufferSource bufferSource = MultiBufferSource.immediate(new BufferBuilder(256));
+        //? if <1.21 {
+        /*MultiBufferSource.BufferSource bufferSource = MultiBufferSource.immediate(new BufferBuilder(256));
+        *///?} else {
+        MultiBufferSource.BufferSource bufferSource = MultiBufferSource.immediate(new ByteBufferBuilder(256));
+        //?}
         float textWidth = font.width(DISPLAY_TEXT);
         float textX = -textWidth / 2.0F;
         float textY = -font.lineHeight / 2.0F;
@@ -248,13 +253,13 @@ public class RemoteOverlayRenderHelper implements VREventListener {
 
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
 
-        BufferBuilder bufferBuilder = Tesselator.getInstance().getBuilder();
+        McVertexBuilder bufferBuilder = McVertexBuilder.get();
         bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         bufferBuilder.vertex(poseMatrix, -halfSize, -halfHeight, 0f).color(r, g, b, a).endVertex();
         bufferBuilder.vertex(poseMatrix, halfSize, -halfHeight, 0f).color(r, g, b, a).endVertex();
         bufferBuilder.vertex(poseMatrix, halfSize, halfHeight, 0f).color(r, g, b, a).endVertex();
         bufferBuilder.vertex(poseMatrix, -halfSize, halfHeight, 0f).color(r, g, b, a).endVertex();
-        BufferUploader.drawWithShader(bufferBuilder.end());
+        bufferBuilder.draw();
     }
 
     private void renderWorld(@NotNull PoseStack poseStack, float partialTicks) {

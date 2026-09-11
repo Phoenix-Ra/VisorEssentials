@@ -14,11 +14,12 @@ import org.vmstudio.visor.api.common.addon.VisorAddon;
 import org.vmstudio.visor.api.common.network.VisorChannel;
 import org.vmstudio.visor.api.common.network.VisorNetwork;
 import org.vmstudio.visor.api.common.network.VisorPayloadToServer;
+import org.vmstudio.visor.api.compatibility.mcversion.McVersionUtils;
 
 public final class EssentialsChannel {
 
     public static final ResourceLocation ID =
-            new ResourceLocation(VisorEssentials.MOD_ID, "channel");
+            McVersionUtils.newResourceLoc(VisorEssentials.MOD_ID, "channel");
     public static final int NETWORK_VERSION = 2; // 2: bow draw cancel payload
 
     private static VisorChannel INSTANCE;

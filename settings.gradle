@@ -41,8 +41,9 @@ stonecutter {
         // Mod Loader branches
         branch("essentials-fabric") { versions(versionsFor("fabric")) }
         branch("essentials-forge")  { versions(versionsFor("forge")) }
+        branch("essentials-neoforge") { versions(versionsFor("neoforge")) }
 
         // Main version, should be used for git commits
-        vcsVersion = "1.20.1"
+        vcsVersion = "1.21.1"
     }
 }

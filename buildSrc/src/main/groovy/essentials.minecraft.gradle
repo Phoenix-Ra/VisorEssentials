@@ -1,6 +1,6 @@
 /*
  * Plugin applied to EVERY versioned subproject (":essentials-core:<mc>", ":essentials-fabric:<mc>",
- * ":essentials-forge:<mc>").
+ * ":essentials-forge:<mc>", ":essentials-neoforge:<mc>").
  */
 plugins {
     id "java-library"
@@ -125,6 +125,7 @@ project.ext.resourcePlaceholders = [
         minecraft_version_range_fabric   : minecraft_version_range_fabric,
         minecraft_version_range_forgelike: minecraft_version_range_forgelike,
         forge_version_range              : findProperty("forge_version_range") ?: "",
+        neoforge_version_range           : findProperty("neoforge_version_range") ?: "",
 ]
 
 processResources {

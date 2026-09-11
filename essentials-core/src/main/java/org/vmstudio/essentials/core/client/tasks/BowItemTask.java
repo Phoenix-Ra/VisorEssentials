@@ -18,6 +18,7 @@ import org.vmstudio.essentials.core.common.network.EssentialsChannel;
 import org.vmstudio.essentials.core.common.network.toserver.BowDrawCancelPayloadToServer;
 import org.vmstudio.essentials.core.common.network.toserver.BowTensionPayloadToServer;
 import org.vmstudio.visor.api.VisorAPI;
+import org.vmstudio.visor.api.compatibility.mcversion.McVersionUtils;
 import org.vmstudio.visor.api.client.ClientFeature;
 import org.vmstudio.visor.api.client.events.AllowClientFeatureVREvent;
 import org.vmstudio.visor.api.client.events.gui.CursorFocusChangedVREvent;
@@ -153,7 +154,7 @@ public class BowItemTask extends VisorTask implements VREventListener {
         if (!arrowItem.is(ItemTags.ARROWS)) {
             arrowItem = ItemStack.EMPTY;
         }
-        int useDuration = bowItem.getUseDuration();
+        int useDuration = McVersionUtils.useDuration(bowItem, player);
 
         // Conditions for being able to draw the bow
         if (!arrowItem.isEmpty()

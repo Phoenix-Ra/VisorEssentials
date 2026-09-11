@@ -260,6 +260,11 @@ public abstract class AbstractContainerScreenMixin <T extends AbstractContainerM
         return visorEssentials$vrSlots == null ? List.of() : visorEssentials$vrSlots;
     }
 
+    @Override
+    public ContainerSlot visorEssentials$getVRSlot(@NotNull Slot slot) {
+        return visorEssentials$vrSlot(slot);
+    }
+
 
     @Override
     public void visorEssentials$setEdgeX(int value) {
