@@ -124,6 +124,8 @@ project.ext.resourcePlaceholders = [
         fabric_loader_version_range      : fabric_loader_version_range,
         minecraft_version_range_fabric   : minecraft_version_range_fabric,
         minecraft_version_range_forgelike: minecraft_version_range_forgelike,
+        visor_version_range_fabric       : visor_version_range_fabric,
+        visor_version_range_forgelike    : visor_version_range_forgelike,
         forge_version_range              : findProperty("forge_version_range") ?: "",
         neoforge_version_range           : findProperty("neoforge_version_range") ?: "",
 ]

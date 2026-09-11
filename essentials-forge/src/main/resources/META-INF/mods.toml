@@ -16,7 +16,7 @@ ${mod_description}
 [[dependencies.${mod_id}]]
 modId = "visor"
 mandatory = true
-versionRange = "[0.4.0-alpha,)"
+versionRange = "${visor_version_range_forgelike}"
 ordering = "AFTER"
 side = "BOTH"
 

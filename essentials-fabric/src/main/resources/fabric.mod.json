@@ -22,9 +22,7 @@
   "depends": {
     "fabricloader": "${fabric_loader_version_range}",
     "minecraft": "${minecraft_version_range_fabric}",
-    "java": ">=${java_version}"
-  },
-  "breaks": {
-    "visor": "<0.4.0"
+    "java": ">=${java_version}",
+    "visor": "${visor_version_range_fabric}"
   }
 }

@@ -11,6 +11,8 @@ mod_license = "LGPL-3.0-only"
 # "local" = <root>/libs, "maven" = Modrinth Maven (maven.modrinth:visor:<visor_version>+mc<mc>-<loader>:api)
 visor_source  = "maven"
 visor_version = "0.6.0-alpha.1"
+visor_version_range_fabric    = ">=0.6.0-alpha.1"
+visor_version_range_forgelike = "[0.6.0-alpha.1,)"
 
 # ---- Common dependencies ----------------------------------------------------------------------
 fabric_loader_version = "0.16.14"
