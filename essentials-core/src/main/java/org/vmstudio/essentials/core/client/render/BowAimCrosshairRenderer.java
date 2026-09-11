@@ -19,6 +19,7 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11C;
 import org.vmstudio.essentials.core.client.tasks.BowItemTask;
@@ -101,11 +102,6 @@ public class BowAimCrosshairRenderer implements VREventListener {
         }
 
         VRPose cameraPose = renderPose.getCameraPose(event.getRenderPass());
-        Vec3 cameraPos = new Vec3(
-                cameraPose.getPosition().x(),
-                cameraPose.getPosition().y(),
-                cameraPose.getPosition().z()
-        );
 
         Vec3 renderPos = hitPos.subtract(aimDir.scale(SURFACE_OFFSET));
 
@@ -116,7 +112,7 @@ public class BowAimCrosshairRenderer implements VREventListener {
 
         render(
                 event.getPoseStack(),
-                renderPos, cameraPos, aimDir, scale,
+                cameraPose, renderPos, aimDir, scale,
                 getBrightness(task, renderPos, hitSomething)
         );
     }
@@ -138,8 +134,8 @@ public class BowAimCrosshairRenderer implements VREventListener {
     }
 
     private void render(@NotNull PoseStack poseStack,
+                        @NotNull VRPose cameraPose,
                         @NotNull Vec3 renderPos,
-                        @NotNull Vec3 cameraPos,
                         @NotNull Vec3 aimDir,
                         float scale,
                         float brightness) {
@@ -172,12 +168,17 @@ public class BowAimCrosshairRenderer implements VREventListener {
         RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
 
         poseStack.pushPose();
+
+        poseStack.setIdentity();
+        Matrix4f viewRotation = cameraPose.getRotation().transpose(new Matrix4f());
+        poseStack.last().pose().mul(viewRotation);
+        poseStack.last().normal().mul(new Matrix3f(viewRotation));
+        Vec3 cameraPos = cameraPose.getPositionVec3();
         poseStack.translate(
                 renderPos.x - cameraPos.x,
                 renderPos.y - cameraPos.y,
                 renderPos.z - cameraPos.z
         );
-
 
         // --- Render ---
         poseStack.mulPose(Axis.YP.rotationDegrees(-yaw));
